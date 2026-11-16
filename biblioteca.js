@@ -73,16 +73,16 @@ function demo(b,n,N){
   if(n==0){const c=P[b.p];
     o+=`<rect x="14" y="14" width="372" height="572" fill="${c[0]}" stroke="${NV}" stroke-width="5"/><svg class="art" x="14" y="14" width="372" height="400" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice" style="--b:${c[0]};--f:${c[1]}">${ART[b.art]}</svg><rect x="14" y="414" width="372" height="172" fill="#fff" stroke="${NV}" stroke-width="5"/>`;
     wrapT(b.n.toUpperCase(),19).forEach((t,i)=>o+=`<text x="30" y="${458+i*30}" font-size="26" fill="${NV}">${t}</text>`);
-    o+=`<text x="30" y="550" font-family="Manrope" font-weight="800" font-size="14" fill="${BL}">${b.au} · ${b.y}</text><text x="372" y="574" text-anchor="end" font-size="58" fill="${LI}" stroke="${NV}" stroke-width="2">${b.k}</text>`;
+    o+=`<text x="30" y="550" font-family="Zen Kaku Gothic New" font-weight="800" font-size="14" fill="${BL}">${b.au} · ${b.y}</text><text x="372" y="574" text-anchor="end" font-size="58" fill="${LI}" stroke="${NV}" stroke-width="2">${b.k}</text>`;
   }else L[n%3].forEach((r,i)=>{
     const [x,y,w,h]=r,c=P[(b.p+i+n)%4],k=(i+n)%3==0?b.art:KEYS[(i*3+n)%KEYS.length];
     o+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c[0]}"/><svg class="art" x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice" style="--b:${c[0]};--f:${c[1]}">${ART[k]}</svg>`;
     if(i==1+n%2){let ln=``;for(let a=0;a<28;a++){const t=a/28*6.283,cx=w/2,cy=h/2;ln+=`<line x1="${cx+Math.cos(t)*w*.3}" y1="${cy+Math.sin(t)*h*.3}" x2="${cx+Math.cos(t)*w}" y2="${cy+Math.sin(t)*w}"/>`}
       o+=`<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><g stroke="${NV}" stroke-width="1.6" opacity=".6">${ln}</g><text x="${w/2}" y="${h/2+14}" text-anchor="middle" font-size="40" fill="${LI}" stroke="${NV}" stroke-width="3" paint-order="stroke">${SX[(n+i)%4]}</text></svg>`}
     o+=`<rect x="${x}" y="${y+h*.58}" width="${w}" height="${h*.42}" fill="url(#ht)"/>`;
-    if(i%2==0)o+=`<ellipse cx="${x+w-62}" cy="${y+34}" rx="52" ry="24" fill="#fff" stroke="${NV}" stroke-width="3"/><text x="${x+w-62}" y="${y+39}" text-anchor="middle" font-family="Manrope" font-weight="800" font-size="13" fill="${NV}">${TX[(n+i)%4]}</text>`;
+    if(i%2==0)o+=`<ellipse cx="${x+w-62}" cy="${y+34}" rx="52" ry="24" fill="#fff" stroke="${NV}" stroke-width="3"/><text x="${x+w-62}" y="${y+39}" text-anchor="middle" font-family="Zen Kaku Gothic New" font-weight="800" font-size="13" fill="${NV}">${TX[(n+i)%4]}</text>`;
     o+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="${NV}" stroke-width="4"/>`});
-  return o+`<text x="386" y="598" text-anchor="end" font-family="Manrope" font-size="9" fill="#4a5180">Demonstração · ${n+1}/${N}</text></svg>`}
+  return o+`<text x="386" y="598" text-anchor="end" font-family="Zen Kaku Gothic New" font-size="9" fill="#4a5180">Demonstração · ${n+1}/${N}</text></svg>`}
 const pageEl=(b,n)=>`<div class="pg">${demo(b,n,b.pages)}<img src="assets/manga/${b.id}/${n+1}.jpg" alt="${b.n}, página ${n+1}" onerror="this.remove()"></div>`;
 /* leitor */
 const R={b:null,i:0,mode:`page`,rtl:true,z:1};
