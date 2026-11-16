@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="gate">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Biblioteca – Mangáverso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><pattern id="ht" width="6" height="6" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="1.4" fill="#0a0f45" opacity=".4"/></pattern></defs></svg>
+<header class="blue phead"><div id="nav"></div>
+<div class="chr cr" data-ch="1"></div>
+<div class="wrap"><h1>Biblioteca</h1><p><span id="hi"></span></p><div class="banner" id="plan"></div></div></header>
+<main><section class="blue"><div class="wrap">
+<div class="tools"><input id="q" type="search" placeholder="Buscar por título ou autor…" aria-label="Buscar"><button class="chip" id="onlyFav" aria-pressed="false">♥ Só favoritos</button></div>
+<div class="chips" id="chips"></div>
+<div id="cats"></div>
+<p class="legal"><b>Sobre o domínio público e as capas:</b> usamos obras de autoria antiga ou cujo autor morreu há mais de 70 anos, prazo adotado no Brasil. Digitalizações e edições modernas podem ter direitos próprios, e a regra varia por país. Capas e páginas reais são carregadas das pastas <code>assets/covers/</code> e <code>assets/manga/</code>; sem elas, o site mostra capas ilustradas e páginas de demonstração.</p>
+</div></section></main>
+<dialog id="dlg"><button class="tbtn x" id="close" aria-label="Fechar">✕</button><div class="dg" id="dbody"></div></dialog>
+<dialog id="rd" aria-label="Leitor de mangá">
+<div class="rt"><h3 id="rtitle"></h3>
+<button class="rbt" data-m="page" aria-pressed="true">Página</button><button class="rbt" data-m="spread" aria-pressed="false">Dupla</button><button class="rbt" data-m="scroll" aria-pressed="false">Vertical</button>
+<button class="rbt" id="rtl" aria-pressed="true">日本式 ← direita p/ esquerda</button>
+<button class="rbt" id="zo" aria-label="Diminuir zoom">−</button><button class="rbt" id="zi" aria-label="Aumentar zoom">+</button><button class="rbt" id="fs">Tela cheia</button><button class="rbt" id="rx" style="background:var(--lime);color:var(--navy)">Fechar ✕</button></div>
+<div class="stage" id="stage"><div class="inner" id="inner"></div></div>
+<div class="rb"><button class="rbt" id="rp">‹ Anterior</button><input type="range" id="sl" min="1" value="1" aria-label="Página"><span class="ct" id="ct"></span><button class="rbt" id="rn">Próxima ›</button>
+<span class="hint">Atalhos: ← → viram a página, + e − dão zoom. Clique na metade da página para virar. Seu progresso fica salvo.</span></div>
+</dialog>
+<div id="foot"></div>
+<script src="app.js"></script>
+<script>
+if(MV.guard()){const s=document.createElement('script');s.src='biblioteca.js';document.body.appendChild(s)}
+</script>
+</body>
+</html>

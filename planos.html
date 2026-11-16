@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="gate">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Planos – Mangáverso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="blue phead"><div id="nav"></div>
+<div class="chr cr" data-ch="1"></div>
+<div class="wrap"><h1>Escolha seu plano</h1><p>Leitura digital ilimitada em todos. Os planos superiores somam vantagens nas edições físicas.</p></div></header>
+<main><section><div class="wrap">
+<div class="toggle" role="group" aria-label="Periodicidade"><button id="bm" aria-pressed="true">Mensal</button><button id="ba" aria-pressed="false">Anual −20%</button></div>
+<div class="plans" id="plans"></div>
+<p class="mute" style="margin-top:28px;font-size:14px">Valores de demonstração: os planos Básico, Premium e Deluxe ainda estão em desenvolvimento.</p>
+<p style="margin-top:18px"><a class="btn w" href="biblioteca.html">Escolher depois e abrir a biblioteca</a></p>
+</div></section></main>
+<div id="foot"></div>
+<script src="app.js"></script>
+<script>
+if(MV.guard()){
+const PL=[{n:'Básico',p:19.9,f:['Leitura digital ilimitada','Primeiros capítulos de lançamentos','1 aparelho']},
+{n:'Premium',p:34.9,hot:1,f:['Tudo do Básico','Lançamentos simultâneos','3 aparelhos','Retirada em loja sem frete']},
+{n:'Deluxe',p:59.9,f:['Tudo do Premium','Desconto em edições de colecionador','Acesso antecipado a pré-vendas','5 aparelhos']}];
+let an=false;const fm=v=>v.toFixed(2).replace('.',',');
+function draw(){const cur=MV.me().plan;
+  $('#plans').innerHTML=PL.map(x=>{const v=an?x.p*.8:x.p;
+    return `<div class="card plan${x.hot?' hot':''}">${x.hot?'<span class="pt">Mais escolhido</span>':''}<h3>${x.n}</h3><div class="price">R$ ${fm(v)}<small> /mês</small></div><p style="font-size:14px">${an?'Cobrado anualmente: R$ '+fm(v*12):'Cobrança mensal'}</p><ul>${x.f.map(f=>`<li>${f}</li>`).join('')}</ul><button class="btn${x.hot?' b':' w'}" data-p="${x.n}"${cur==x.n?' disabled':''}>${cur==x.n?'Plano atual':'Assinar '+x.n}</button></div>`}).join('')}
+function per(a){an=a;$('#bm').setAttribute('aria-pressed',!a);$('#ba').setAttribute('aria-pressed',a);draw()}
+$('#bm').onclick=()=>per(false);$('#ba').onclick=()=>per(true);
+$('#plans').onclick=e=>{const p=e.target.dataset.p;if(!p)return;MV.setPlan(p);MV.toast('Plano '+p+' ativado. Abrindo a biblioteca…');setTimeout(()=>location.href='biblioteca.html',1100)};
+draw();}
+</script>
+</body>
+</html>
