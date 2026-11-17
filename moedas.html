@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="gate">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Moedas – Mangáverso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="blue phead" data-k="貨"><div id="nav"></div>
+<div class="wrap"><h1>Manga Coin</h1><p>A moeda do Mangáverso. Leia, acumule e troque por descontos e brindes.</p><div class="banner" id="plan"></div></div></header>
+<main>
+<section><div class="wrap">
+<div class="card wallet">
+<div id="coinbox" aria-hidden="true"></div>
+<div><div class="lbl">Seu saldo</div><div class="bal"><span id="bal">0</span><small>moedas</small></div>
+<div class="goal" id="goal"></div></div>
+</div></div></section>
+
+<section class="blue"><div class="wrap">
+<div class="sh"><h2>Como <span class="lab">ganhar</span></h2><p class="mute">Quanto mais você lê, mais moedas acumula.</p></div>
+<div class="earn">
+<div class="card"><span class="tag">+10 por título</span><h3 style="margin-top:14px">Leia até o fim</h3><p>Veja todas as páginas de uma obra no leitor. Cada título rende moedas uma única vez.</p></div>
+<div class="card"><span class="tag">+2 a cada 5 min</span><h3 style="margin-top:14px">Tempo de tela</h3><p>O relógio corre enquanto o leitor está aberto e você está lendo. Parado, ele pausa.</p></div>
+<div class="card"><span class="tag soon">Em breve</span><h3 style="margin-top:14px">Compras no site</h3><p>Edições físicas e brindes passarão a render moedas de volta.</p></div>
+<div class="card"><span class="tag soon">Em breve</span><h3 style="margin-top:14px">Comprar moedas</h3><p>Complete o saldo com pacotes de moedas quando quiser um brinde mais cedo.</p></div>
+</div></div></section>
+
+<section><div class="wrap">
+<div class="sh"><h2>Troque por <span class="lab">brindes</span></h2><p class="mute">Só assinantes trocam moedas. Cada troca gera um código de resgate.</p></div>
+<div class="rwd" id="rwd"></div>
+</div></section>
+
+<section class="blue"><div class="wrap">
+<div class="sh"><h2>Meus <span class="lab">resgates</span></h2></div>
+<ul class="reslist" id="res"></ul>
+</div></section>
+</main>
+<div id="foot"></div>
+<script src="app.js"></script>
+<script>
+if(MV.guard()){
+const U=MV.me(),RK=`mv_redeem_`+U.email;
+const RW=[
+{id:`d10`,t:`10% de desconto`,d:`Cupom para a próxima mensalidade de qualquer plano.`,c:120,k:`割`,v:1,s:`Cupom pronto para usar`},
+{id:`d25`,t:`25% de desconto`,d:`Cupom maior, válido para a mensalidade ou para o plano anual.`,c:260,k:`割`,v:2,s:`Cupom pronto para usar`},
+{id:`fr`,t:`Frete grátis`,d:`Entrega em casa sem frete na sua próxima edição física.`,c:180,k:`送`,v:3,s:`Cupom pronto para usar`},
+{id:`mp`,t:`Marca-página personalizado`,d:`Impresso com o seu título favorito e enviado para você.`,c:150,k:`栞`,v:4,s:`Aguardando envio`},
+{id:`po`,t:`Pôster de mangá`,d:`Pôster com arte exclusiva do Mangáverso.`,c:320,k:`絵`,v:1,s:`Aguardando envio`},
+{id:`af`,t:`Action figure`,d:`Figura colecionável de edição limitada.`,c:900,k:`像`,v:2,s:`Aguardando envio`}];
+const bal=()=>MV.coins.bal(),fmt=n=>n.toLocaleString(`pt-BR`);
+const list=()=>MV.get(RK,[]);
+$(`#plan`).innerHTML=U.plan?`Plano ${U.plan} ativo · troque suas moedas`:`Só assinantes trocam moedas. <a href="planos.html" style="text-decoration:underline">Ver planos</a>`;
+$(`#coinbox`).innerHTML=coinSVG(230).replace(`class="coin"`,`class="coin flip"`);
+function draw(){
+  const b=bal();$(`#bal`).textContent=fmt(b);
+  const next=RW.filter(r=>r.c>b).sort((x,y)=>x.c-y.c)[0];
+  $(`#goal`).innerHTML=next?`Faltam ${fmt(next.c-b)} para <b>${next.t}</b><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${next.c}" aria-valuenow="${b}"><i style="width:${Math.round(b/next.c*100)}%"></i></div>`:`Você já pode trocar por qualquer brinde.`;
+  $(`#rwd`).innerHTML=RW.map(r=>{
+    const ok=!!U.plan&&b>=r.c,lb=!U.plan?`Assine para trocar`:b>=r.c?`Trocar`:`Faltam ${fmt(r.c-b)}`;
+    return `<div class="card rw"><div class="tile v${r.v}" aria-hidden="true">${r.k}</div><h3>${r.t}</h3><p>${r.d}</p><div class="cost">${coinSVG(28,false)}${fmt(r.c)}</div><button class="btn b" data-r="${r.id}"${ok?``:` disabled`}>${lb}</button></div>`}).join(``);
+  const h=list();
+  $(`#res`).innerHTML=h.length?h.map(x=>`<li><b>${x.t}</b><code>${x.code}</code><small>${x.s} · ${new Date(x.at).toLocaleDateString(`pt-BR`)}</small></li>`).join(``):`<li style="background:transparent;border-style:dashed"><span class="mute">Você ainda não trocou moedas. Seus códigos de resgate aparecem aqui.</span></li>`;
+  MV.coins.sync();
+}
+$(`#rwd`).onclick=e=>{const id=e.target.dataset.r;if(!id)return;
+  const r=RW.find(x=>x.id==id);if(!r||!U.plan)return;
+  if(!confirm(`Trocar ${r.c} moedas por “${r.t}”?`))return;
+  if(!MV.coins.spend(r.c)){MV.toast(`Saldo insuficiente.`);draw();return}
+  const code=`MV-`+Math.random().toString(36).slice(2,8).toUpperCase();
+  MV.set(RK,[{id:r.id,t:r.t,s:r.s,code,at:Date.now()},...list()]);
+  MV.toast(`Troca feita! Código ${code}`);draw()};
+draw();
+}
+</script>
+</body>
+</html>

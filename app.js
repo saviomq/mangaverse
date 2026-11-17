@@ -74,6 +74,32 @@ const MV={
   toast(m){let t=$(`#toast`);if(!t){t=document.createElement(`div`);t.id=`toast`;t.className=`toast`;t.setAttribute(`role`,`status`);document.body.appendChild(t)}
     t.textContent=m;t.classList.add(`on`);clearTimeout(this._t);this._t=setTimeout(()=>t.classList.remove(`on`),2000)}
 };
+/* Manga Coin: moeda virtual. O saldo fica guardado por conta neste navegador
+   (para valer em qualquer aparelho, grave em uma coluna `moedas` da tabela `perfis`). */
+MV.coins={
+  key(){const u=MV.me();return `mv_coins_`+(u?u.email:``)},
+  bal(){return +MV.get(this.key(),0)||0},
+  add(n,why){const v=this.bal()+n;MV.set(this.key(),v);this.sync();if(why)MV.toast(`+${n} Manga Coin${n>1?`s`:``} · ${why}`);return v},
+  spend(n){if(this.bal()<n)return false;MV.set(this.key(),this.bal()-n);this.sync();return true},
+  sync(){const e=$(`#nb`);if(e)e.textContent=this.bal()}
+};
+let _cn=0;
+/* moeda no estilo do site: aro lime, face azul com meio-tom e raios, livro aberto em quadros.
+   full=false gera a versão pequena (sem textos) para menu e preços */
+function coinSVG(sz=120,full=true){
+  const id=`cn`+(++_cn);let rays=``;
+  for(let i=0;i<16;i+=2){const a=i*Math.PI/8,b=(i+1)*Math.PI/8,f=n=>n.toFixed(1);
+    rays+=`<path d="M100 100L${f(100+Math.cos(a)*90)} ${f(100+Math.sin(a)*90)}L${f(100+Math.cos(b)*90)} ${f(100+Math.sin(b)*90)}Z"/>`}
+  const ff=`'Dela Gothic One','Zen Kaku Gothic New',Impact,sans-serif`;
+  const txt=full?`<text font-family="${ff}" fill="${NV}" text-anchor="middle"><textPath href="#${id}t" startOffset="50%" font-size="15" letter-spacing="1.5">MANGA COIN</textPath></text><text font-family="${ff}" fill="${NV}" text-anchor="middle"><textPath href="#${id}b" startOffset="50%" font-size="10.5" letter-spacing="2.5">MANGÁVERSO</textPath></text><path d="M20 94l6 6-6 6-6-6zM180 94l6 6-6 6-6-6z" fill="${NV}"/>`:``;
+  return `<svg class="coin" width="${sz}" height="${sz}" viewBox="0 0 200 200" role="img" aria-label="Manga Coin" xmlns="http://www.w3.org/2000/svg"><defs><clipPath id="${id}c"><circle cx="100" cy="100" r="63"/></clipPath><pattern id="${id}h" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.2" fill="${NV}" opacity=".32"/></pattern><path id="${id}t" d="M26 100A74 74 0 0 1 174 100"/><path id="${id}b" d="M16 100A84 84 0 0 0 184 100"/></defs>`
+  +`<circle cx="100" cy="100" r="98" fill="${NV}"/><circle cx="100" cy="100" r="93" fill="${LI}"/><circle cx="100" cy="100" r="90" fill="none" stroke="${NV}" stroke-width="1.5" opacity=".35"/><circle cx="100" cy="100" r="68" fill="${NV}"/><circle cx="100" cy="100" r="63" fill="${BL}"/>`
+  +`<g clip-path="url(#${id}c)"><g fill="#fff" opacity=".13">${rays}</g><circle cx="100" cy="100" r="63" fill="url(#${id}h)"/></g>`
+  +`<path d="M50 90A52 52 0 0 1 82 52" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".28"/>`
+  +`<g transform="translate(0 -4)" stroke="${NV}" stroke-linejoin="round"><path d="M48 80L100 92L152 80V122Q126 118 100 130Q74 118 48 122Z" fill="${NV}" stroke-width="2"/><path d="M53 80Q78 78 100 90V126Q78 114 53 117Z" fill="#fff" stroke-width="2.5"/><path d="M147 80Q122 78 100 90V126Q122 114 147 117Z" fill="#fff" stroke-width="2.5"/>`
+  +`<g fill="none" stroke-width="2"><rect x="58" y="86" width="14" height="11"/><rect x="75" y="89" width="17" height="10" fill="${LI}"/><rect x="58" y="100" width="34" height="13"/><rect x="128" y="86" width="14" height="11"/><rect x="108" y="89" width="17" height="10"/><rect x="108" y="100" width="34" height="13" fill="${LI}"/></g><circle cx="65" cy="91.5" r="3" fill="${NV}" stroke="none"/><path d="M62 109q8-6 16 0t14-2M112 94l5 3 4-4 4 4" fill="none" stroke-width="1.8" stroke-linecap="round"/></g>`
+  +`<path d="M140 56l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z" fill="${LI}"/><path d="M62 62l1.6 4.4 4.4 1.6-4.4 1.6-1.6 4.4-1.6-4.4-4.4-1.6 4.4-1.6z" fill="#fff"/>${txt}</svg>`
+}
 const savedTheme=MV.get(MV.K.t,null);
 if(savedTheme===`light`||savedTheme===`dark`)document.documentElement.dataset.theme=savedTheme;
 function isDarkTheme(){
@@ -87,6 +113,7 @@ function layout(){
     const acts=u
       ?[
         ...(cur!==`biblioteca.html`?[`<a class="btn sm w" href="biblioteca.html">Biblioteca</a>`]:[]),
+        ...(cur!==`moedas.html`?[`<a class="btn sm w coinlink" href="moedas.html" aria-label="Moedas">${coinSVG(20,false)}Moedas <b id="nb">${MV.coins.bal()}</b></a>`]:[]),
         ...(cur!==`planos.html`?[`<a class="btn sm w" href="planos.html">${u.plan?`Plano `+u.plan:`Planos`}</a>`]:[]),
         `<button class="btn sm" id="out">Sair</button>`
       ]
@@ -94,7 +121,7 @@ function layout(){
     n.innerHTML=`<nav><div class="wrap"><a class="logo" href="index.html" aria-label="Mangáverso"><i></i>Mangáverso</a><div class="act">${acts.join(``)}<button class="tbtn" id="theme" aria-label="Alternar tema" title="Alternar tema">◐</button></div></div></nav>`;
   }
   const f=$(`#foot`);
-  if(f)f.innerHTML=`<footer class="blue"><div class="wrap"><div class="big dsp">Mangáverso</div><div><p>Distribuição de mangás por assinatura e venda física.</p></div><div><p><a href="index.html">Início</a><a href="sobre.html">Sobre nós</a><a href="faq.html">FAQ</a>${u?`<a href="biblioteca.html">Biblioteca</a>`:`<a href="login.html">Entrar</a>`}</p><p>© 2026 Mangáverso. Todos os direitos reservados.</p></div></div></footer>`;
+  if(f)f.innerHTML=`<footer class="blue"><div class="wrap"><div class="big dsp">Mangáverso</div><div><p>Distribuição de mangás por assinatura e venda física.</p></div><div><p><a href="index.html">Início</a><a href="sobre.html">Sobre nós</a><a href="faq.html">FAQ</a>${u?`<a href="biblioteca.html">Biblioteca</a><a href="moedas.html">Moedas</a>`:`<a href="login.html">Entrar</a>`}</p><p>© 2026 Mangáverso. Todos os direitos reservados.</p></div></div></footer>`;
   const o=$(`#out`);if(o)o.onclick=()=>MV.logout();
   const t=$(`#theme`);
   if(t){

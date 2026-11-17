@@ -86,10 +86,10 @@ function demo(b,n,N){
 const pageEl=(b,n)=>`<div class="pg">${demo(b,n,b.pages)}<img src="assets/manga/${b.id}/${n+1}.jpg" alt="${b.n}, página ${n+1}" onerror="this.remove()"></div>`;
 /* leitor */
 const R={b:null,i:0,mode:`page`,rtl:true,z:1};
-function openR(b){R.b=b;R.i=Math.min(prog[b.id]??0,b.pages-1);$(`#rtitle`).textContent=b.n;$(`#sl`).max=b.pages;rdr();if(!$(`#rd`).open)$(`#rd`).showModal()}
+function openR(b){R.b=b;R.i=Math.min(prog[b.id]??0,b.pages-1);$(`#rtitle`).textContent=b.n;$(`#sl`).max=b.pages;rdr();if(!$(`#rd`).open)$(`#rd`).showModal();fit()}
 function rdr(){
   const b=R.b,N=b.pages;
-  $(`#inner`).style.setProperty(`--z`,R.z);$(`#stage`).classList.toggle(`vs`,R.mode==`scroll`);
+  $(`#inner`).style.setProperty(`--z`,R.z);$(`#inner`).style.setProperty(`--n`,R.mode==`spread`?2:1);$(`#stage`).classList.toggle(`vs`,R.mode==`scroll`);
   let h=``;
   if(R.mode==`scroll`){for(let n=0;n<N;n++)h+=pageEl(b,n)}
   else if(R.mode==`spread`){const a=R.i-(R.i%2),pg=[a,a+1].filter(n=>n<N);if(R.rtl)pg.reverse();h=pg.map(n=>pageEl(b,n)).join(``)}
@@ -98,6 +98,8 @@ function rdr(){
   document.querySelectorAll(`.rbt[data-m]`).forEach(x=>x.setAttribute(`aria-pressed`,x.dataset.m==R.mode));
   $(`#rtl`).setAttribute(`aria-pressed`,R.rtl);$(`#rtl`).textContent=R.rtl?`日本式 ← direita p/ esquerda`:`Ocidental → esquerda p/ direita`;
   prog[b.id]=R.i;MV.set(PK(b.id),R.i);
+  if(R.mode==`page`)seen(b,[R.i]);else if(R.mode==`spread`){const a=R.i-(R.i%2);seen(b,[a,a+1])}
+  requestAnimationFrame(fit);
 }
 function go(d){const s=R.mode==`spread`?2:1,N=R.b.pages;R.i=Math.max(0,Math.min(N-1,(R.mode==`spread`?R.i-(R.i%2):R.i)+d*s));if(R.mode==`scroll`)$(`#stage`).scrollTo({top:0});rdr()}
 $(`#rn`).onclick=()=>go(1);$(`#rp`).onclick=()=>go(-1);
@@ -111,4 +113,21 @@ $(`#inner`).onclick=e=>{if(R.mode==`scroll`)return;const r=e.currentTarget.getBo
 document.addEventListener(`keydown`,e=>{if(!$(`#rd`).open)return;
   if(e.key==`ArrowLeft`)go(R.rtl?1:-1);else if(e.key==`ArrowRight`)go(R.rtl?-1:1);
   else if(e.key==`+`||e.key==`=`)$(`#zi`).click();else if(e.key==`-`)$(`#zo`).click()});
+
+/* Manga Coins: +10 ao ver todas as páginas de um título (uma vez por título) e +2 a cada 5 min de leitura ativa */
+const COIN_BOOK=10,COIN_TIME=2,DK=id=>`mv_done_${U.email}_${id}`,SK=id=>`mv_seen_${U.email}_${id}`,TK=`mv_time_`+U.email;
+function seen(b,list){
+  const s=new Set(MV.get(SK(b.id),[])),n0=s.size;list.filter(i=>i>=0&&i<b.pages).forEach(i=>s.add(i));
+  if(s.size!=n0)MV.set(SK(b.id),[...s]);
+  if(s.size>=b.pages&&!MV.get(DK(b.id),false)){MV.set(DK(b.id),true);MV.coins.add(COIN_BOOK,`você terminou ${b.n}`)}}
+$(`#stage`).addEventListener(`scroll`,()=>{const s=$(`#stage`);
+  if(R.mode==`scroll`&&R.b&&s.scrollTop+s.clientHeight>=s.scrollHeight-24)seen(R.b,[...Array(R.b.pages).keys()])});
+let act=Date.now();
+[`pointerdown`,`keydown`,`wheel`,`touchstart`,`scroll`].forEach(ev=>$(`#rd`).addEventListener(ev,()=>act=Date.now(),true));
+setInterval(()=>{if(!$(`#rd`).open||document.hidden||Date.now()-act>120000)return;
+  let t=MV.get(TK,0)+15;if(t>=300){t-=300;MV.coins.add(COIN_TIME,`5 min de leitura`)}MV.set(TK,t)},15000);
+/* mede as barras do leitor para as páginas ocuparem toda a altura que sobra */
+function fit(){const r=$(`#rd`);if(!r.open)return;
+  r.style.setProperty(`--ch`,(r.querySelector(`.rt`).offsetHeight+r.querySelector(`.rb`).offsetHeight+20)+`px`)}
+addEventListener(`resize`,fit);document.addEventListener(`fullscreenchange`,()=>setTimeout(fit,50));
 render();
