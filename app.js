@@ -47,10 +47,7 @@ function layout(){
         ...(cur!==`planos.html`?[`<a class="btn sm w" href="planos.html">${u.plan?`Plano `+u.plan:`Planos`}</a>`]:[]),
         `<button class="btn sm" id="out">Sair</button>`
       ]
-      :[
-        ...(cur!==`login.html`?[`<a class="btn sm w" href="login.html">Entrar</a>`]:[]),
-        ...(cur!==`cadastro.html`?[`<a class="btn sm" href="cadastro.html">Criar conta</a>`]:[])
-      ];
+      :[];
     n.innerHTML=`<nav><div class="wrap"><a class="logo" href="index.html" aria-label="Mangáverso"><i></i>Mangáverso</a><div class="act">${acts.join(``)}<button class="tbtn" id="theme" aria-label="Alternar tema" title="Alternar tema">◐</button></div></div></nav>`;
   }
   const f=$(`#foot`);
