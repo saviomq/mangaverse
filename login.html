@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Entrar – Mangáverso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="blue phead" data-k="入"><div id="nav"></div>
+<div class="wrap"><h1>Entrar</h1><p>Acesse sua conta para abrir a biblioteca.</p></div></header>
+<main><form class="auth" id="f" novalidate>
+<h2>Bem-vindo de volta</h2>
+<label for="em">E-mail</label><input id="em" type="email" autocomplete="email" required>
+<label for="pw">Senha</label><input id="pw" type="password" autocomplete="current-password" required>
+<p class="err" id="err" role="alert"></p>
+<button class="btn" id="go" type="submit">Entrar</button>
+<p class="alt">Ainda não tem conta? <a href="cadastro.html">Criar conta</a></p>
+</form></main>
+<div id="foot"></div>
+<script src="app.js"></script>
+<script>
+if(typeof MV==='undefined'){document.getElementById('err').textContent='Não foi possível carregar o app.js. Confira se ele está na mesma pasta do login.html e recarregue a página (Ctrl+F5).'}else{
+if(MV.me())location.replace(MV.next('biblioteca.html'));
+$('#f').onsubmit=async e=>{e.preventDefault();const b=$('#go'),er=$('#err');er.textContent='';
+  if(!$('#em').value.trim()||!$('#pw').value){er.textContent='Preencha e-mail e senha.';return}
+  b.disabled=true;
+  try{await MV.login($('#em').value,$('#pw').value);location.href=MV.next('biblioteca.html')}
+  catch(x){er.textContent=x.message;b.disabled=false}};
+}
+</script>
+</body>
+</html>
