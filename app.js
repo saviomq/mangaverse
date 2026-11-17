@@ -4,7 +4,7 @@
 const $=(s,r=document)=>r.querySelector(s);
 const NV=`#0a0f45`,BL=`#1a2bf5`,LI=`#c6ff2e`;
 const MV={
-  K:{u:`mv_users`,s:`mv_session`},
+  K:{u:`mv_users`,s:`mv_session`,t:`mv_theme`},
   get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v===null||v===undefined?d:v}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
   async hash(p){
@@ -31,15 +31,37 @@ const MV={
   toast(m){let t=$(`#toast`);if(!t){t=document.createElement(`div`);t.id=`toast`;t.className=`toast`;t.setAttribute(`role`,`status`);document.body.appendChild(t)}
     t.textContent=m;t.classList.add(`on`);clearTimeout(this._t);this._t=setTimeout(()=>t.classList.remove(`on`),2000)}
 };
+const savedTheme=MV.get(MV.K.t,null);
+if(savedTheme===`light`||savedTheme===`dark`)document.documentElement.dataset.theme=savedTheme;
+function isDarkTheme(){
+  const th=document.documentElement.dataset.theme;
+  return th?th===`dark`:matchMedia(`(prefers-color-scheme:dark)`).matches;
+}
 function layout(){
   const u=MV.me(),cur=MV.page();
-  const L=[[`index.html`,`Início`],...(u?[[`biblioteca.html`,`Biblioteca`]]:[]),[`sobre.html`,`Sobre nós`],[`faq.html`,`FAQ`]];
   const n=$(`#nav`);
-  if(n)n.innerHTML=`<nav><div class="wrap"><a class="logo" href="index.html" aria-label="Mangáverso"><i></i>Mangáverso</a><div class="pills">${L.map(([h,t])=>`<a href="${h}"${h==cur?` aria-current="page"`:``}>${t}</a>`).join(``)}</div><div class="act">${u?`<a class="btn sm w" href="planos.html">${u.plan?`Plano `+u.plan:`Planos`}</a><button class="btn sm" id="out">Sair</button>`:`<a class="btn sm w" href="login.html">Entrar</a><a class="btn sm" href="cadastro.html">Criar conta</a>`}<button class="tbtn" id="theme" aria-label="Alternar tema">◐</button></div></div></nav>`;
+  if(n){
+    const acts=u
+      ?[
+        ...(cur!==`biblioteca.html`?[`<a class="btn sm w" href="biblioteca.html">Biblioteca</a>`]:[]),
+        ...(cur!==`planos.html`?[`<a class="btn sm w" href="planos.html">${u.plan?`Plano `+u.plan:`Planos`}</a>`]:[]),
+        `<button class="btn sm" id="out">Sair</button>`
+      ]
+      :[
+        ...(cur!==`login.html`?[`<a class="btn sm w" href="login.html">Entrar</a>`]:[]),
+        ...(cur!==`cadastro.html`?[`<a class="btn sm" href="cadastro.html">Criar conta</a>`]:[])
+      ];
+    n.innerHTML=`<nav><div class="wrap"><a class="logo" href="index.html" aria-label="Mangáverso"><i></i>Mangáverso</a><div class="act">${acts.join(``)}<button class="tbtn" id="theme" aria-label="Alternar tema" title="Alternar tema">◐</button></div></div></nav>`;
+  }
   const f=$(`#foot`);
   if(f)f.innerHTML=`<footer class="blue"><div class="wrap"><div class="big dsp">Mangáverso</div><div><p>Distribuição de mangás por assinatura e venda física.</p></div><div><p><a href="index.html">Início</a><a href="sobre.html">Sobre nós</a><a href="faq.html">FAQ</a>${u?`<a href="biblioteca.html">Biblioteca</a>`:`<a href="login.html">Entrar</a>`}</p><p>© 2026 Mangáverso. Todos os direitos reservados.</p></div></div></footer>`;
   const o=$(`#out`);if(o)o.onclick=()=>MV.logout();
-  const t=$(`#theme`);if(t)t.onclick=()=>{const r=document.documentElement,d=getComputedStyle(r).getPropertyValue(`--paper`).trim()==`#0a0f45`;r.dataset.theme=d?`light`:`dark`};
+  const t=$(`#theme`);
+  if(t){
+    const sync=()=>{const d=isDarkTheme();t.setAttribute(`aria-label`,d?`Mudar para modo claro`:`Mudar para modo escuro`);t.title=d?`Mudar para modo claro`:`Mudar para modo escuro`};
+    sync();
+    t.onclick=()=>{const next=isDarkTheme()?`light`:`dark`;document.documentElement.dataset.theme=next;MV.set(MV.K.t,next);sync()};
+  }
 }
 layout();
 /* revelação ao rolar (desligada com prefers-reduced-motion) */
