@@ -7,9 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="hero-mosaic.css">
 </head>
 <body>
-<header class="blue hero" data-k="漫画"><div id="nav"></div>
+<header class="blue hero"><div class="mosaic" id="mosaic" aria-hidden="true"></div><div id="nav"></div>
 <svg class="arw a1" viewBox="0 0 170 130" aria-hidden="true"><path pathLength="1" d="M12 14C28 96 92 118 150 72M150 72l-4-30M150 72l-30 6"/></svg>
 <svg class="arw a2" viewBox="0 0 170 130" aria-hidden="true"><path pathLength="1" d="M158 112C120 30 60 20 16 60M16 60l30-4M16 60l6 30"/></svg>
 <div class="glass g1"><i>読</i><div><b>Leitura ilimitada</b><small>Biblioteca por assinatura</small></div></div>
@@ -35,6 +36,7 @@
 </main>
 <div id="foot"></div>
 <script src="app.js"></script>
+<script src="hero-mosaic.js"></script>
 <script>
 if(MV.me())$('#cta').innerHTML='<a class="btn" href="biblioteca.html">Abrir biblioteca</a><a class="btn w" href="planos.html">Ver planos</a>';
 </script>

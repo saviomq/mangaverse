@@ -1,0 +1,30 @@
+/* Mosaico do hero (estilo Netflix/Crunchyroll) – cores do site: --blue, --navy, --lime, branco */
+.hero{min-height:880px}
+@media(max-width:900px){.hero{min-height:760px}}
+.mosaic{position:absolute;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+/* 3 fileiras de altura idêntica, preenchendo todo o fundo */
+.mosaic .wall{position:absolute;inset:0;display:grid;grid-template-rows:repeat(3,1fr)}
+.mosaic .row{display:flex;overflow:hidden;min-height:0;padding:7px 0}
+.mosaic .track{display:flex;gap:14px;padding-right:14px;flex:none;width:max-content;height:100%;animation:mosaic-slide var(--dur,80s) linear infinite}
+.mosaic .row.rev .track{animation-direction:reverse}
+.mosaic .row:nth-child(2) .track{margin-left:-110px} /* fileira do meio deslocada, efeito "tijolo" */
+@keyframes mosaic-slide{to{transform:translateX(-50%)}}
+/* cada card = 1 capa/personagem */
+.mosaic .panel{position:relative;flex:none;height:100%;aspect-ratio:3/4;border-radius:18px;overflow:hidden;
+  border:3px solid var(--lime);background:var(--blue);box-shadow:0 10px 26px rgba(10,15,69,.45)}
+.mosaic .art{position:absolute;inset:0;background:var(--blue);overflow:hidden}
+.mosaic .art i{position:absolute;inset:0;background-size:cover;background-position:center top;filter:grayscale(1) contrast(1.15) brightness(1.05);transition:transform 6s ease}
+.mosaic .panel:nth-child(odd) .art i{animation:mosaic-zoom 20s ease-in-out infinite alternate}
+.mosaic .panel:nth-child(even) .art i{animation:mosaic-zoom 26s ease-in-out infinite alternate-reverse}
+@keyframes mosaic-zoom{from{transform:scale(1)}to{transform:scale(1.1)}}
+.mosaic .art::after{content:"";position:absolute;inset:0;background:var(--blue);mix-blend-mode:multiply;opacity:.78}
+/* cards vazios: cores do site com meio-tom, prontos para receber as imagens */
+.mosaic .art.k{background-color:var(--blue);background-image:radial-gradient(circle,rgba(10,15,69,.35) 1.4px,transparent 1.7px);background-size:8px 8px}
+.mosaic .art.k::after{display:none}
+.mosaic .art.k.v2{background-color:#fff;background-image:radial-gradient(circle,rgba(26,43,245,.28) 1.4px,transparent 1.7px)}
+.mosaic .art.k.v3{background-color:var(--lime);background-image:radial-gradient(circle,rgba(10,15,69,.22) 1.4px,transparent 1.7px)}
+.mosaic .art.k.v4{background-color:var(--navy);background-image:radial-gradient(circle,rgba(255,255,255,.14) 1.4px,transparent 1.7px)}
+/* véu azul: mantém título e botões legíveis */
+.mosaic::after{content:"";position:absolute;inset:0;background:radial-gradient(70% 62% at 50% 46%,rgba(26,43,245,.92),rgba(26,43,245,.55) 72%,rgba(10,15,69,.6)),linear-gradient(transparent 70%,rgba(10,15,69,.55))}
+/* remove o kanji gigante atrás do botão no hero da página inicial */
+.hero::after{content:none;display:none}
