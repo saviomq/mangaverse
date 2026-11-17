@@ -4,9 +4,9 @@
    para usar. Fileira vazia = painéis coloridos do site, prontos para receber imagens. */
 (function(){
   const ROW_IMAGES=[
-    [/* fileira 1 (de cima): "assets/hero/a1.jpg", "assets/hero/a2.jpg" */],
-    [/* fileira 2 (meio):    "assets/hero/b1.jpg", "assets/hero/b2.jpg" */],
-    [/* fileira 3 (baixo):   "assets/hero/c1.jpg", "assets/hero/c2.jpg" */]
+    [ "assets/hero/a1.jpg", "assets/hero/a2.jpg", "assets/hero/a3.jpg", "assets/hero/a4.jpg", "assets/hero/a5.jpg", "assets/hero/a6.jpg", "assets/hero/a7.jpg", "assets/hero/a8.jpg", "assets/hero/a9.jpg", "assets/hero/a10.jpg", "assets/hero/a11.jpg"],
+    [ "assets/hero/b1.jpg", "assets/hero/b2.jpg", "assets/hero/b3.jpg", "assets/hero/b4.jpg", "assets/hero/b5.jpg", "assets/hero/b6.jpg", "assets/hero/b7.jpg", "assets/hero/b8.jpg", "assets/hero/b9.jpg", "assets/hero/b10.jpg", "assets/hero/b11.jpg"],
+    [ "assets/hero/c1.jpg", "assets/hero/c2.jpg", "assets/hero/c3.jpg", "assets/hero/c4.jpg", "assets/hero/c5.jpg", "assets/hero/c6.jpg", "assets/hero/c7.jpg", "assets/hero/c8.jpg", "assets/hero/c9.jpg", "assets/hero/c10.jpg"]
   ];
   const MIN_PANELS=8;        // cards por volta (cobre telas largas; as imagens se repetem se forem menos)
   const SPEED=[80,64,92];    // segundos por volta de cada fileira
