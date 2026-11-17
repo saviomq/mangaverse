@@ -47,10 +47,9 @@ const MV={
       if(e.code==`user_already_exists`||/already registered/i.test(e.message))throw new Error(`Este e-mail já está cadastrado.`);
       if(e.code==`weak_password`||/password/i.test(e.message))throw new Error(`Senha muito fraca. Use pelo menos 6 caracteres.`);
       throw e}
-    if(!d.access_token)throw new Error(`Cadastro criado! Confirme seu e-mail pela mensagem que enviamos e depois entre.`);
+    if(!d.access_token)return{confirm:true};
     this.saveTokens(d);this.set(this.K.s,email);
-    const rows=await this.api(`/rest/v1/perfis`,{method:`POST`,auth:true,prefer:`return=representation`,body:{nome:name,email,plano:null}});
-    this.set(this.K.p,this.fromRow(rows[0]))},
+    await this.loadProfile(email,name);return{confirm:false}},
   async login(email,pw){
     email=email.trim().toLowerCase();let d;
     try{d=await this.api(`/auth/v1/token?grant_type=password`,{method:`POST`,body:{email,password:pw}})}
