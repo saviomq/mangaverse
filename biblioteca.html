@@ -26,7 +26,8 @@
 <button class="rbt" id="zo" aria-label="Diminuir zoom">−</button><button class="rbt" id="zi" aria-label="Aumentar zoom">+</button><button class="rbt" id="fs">Tela cheia</button><button class="rbt rx" id="rx">Fechar ✕</button></div>
 <div class="stage" id="stage"><div class="inner" id="inner"></div></div>
 <div class="rb"><button class="rbt" id="rp">‹ Anterior</button><input type="range" id="sl" min="1" value="1" aria-label="Página"><span class="ct" id="ct"></span><button class="rbt" id="rn">Próxima ›</button>
-<span class="hint">Atalhos: ← → viram a página, + e − dão zoom. Clique na metade da página para virar. Seu progresso fica salvo. Ler até o fim e passar tempo aqui rende Manga Coins.</span></div>
+<span class="hint">Atalhos: ← → viram a página, + e − dão zoom. Clique na metade da página para virar. Seu progresso fica salvo. As Manga Coins só contam enquanto você lê de verdade: a contagem pausa se ficar parado.</span></div>
+<div class="afk" id="afk" hidden role="alertdialog" aria-labelledby="afkt"><div><h3 id="afkt">Ainda está lendo?</h3><p>Pausamos a contagem de moedas porque faz um tempo que você não vira a página.</p><button class="btn" id="afkgo">Continuar lendo</button></div></div>
 </dialog>
 <div id="foot"></div>
 <script src="app.js"></script>

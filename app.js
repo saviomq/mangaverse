@@ -74,14 +74,16 @@ const MV={
   toast(m){let t=$(`#toast`);if(!t){t=document.createElement(`div`);t.id=`toast`;t.className=`toast`;t.setAttribute(`role`,`status`);document.body.appendChild(t)}
     t.textContent=m;t.classList.add(`on`);clearTimeout(this._t);this._t=setTimeout(()=>t.classList.remove(`on`),2000)}
 };
-/* Manga Coin: moeda virtual. O saldo fica guardado por conta neste navegador
-   (para valer em qualquer aparelho, grave em uma coluna `moedas` da tabela `perfis`). */
+/* Manga Coin: o saldo e todas as regras ficam no servidor (Supabase). Este objeto só chama as
+   funções do banco; o número guardado aqui no navegador serve apenas para exibir no menu. */
 MV.coins={
-  key(){const u=MV.me();return `mv_coins_`+(u?u.email:``)},
-  bal(){return +MV.get(this.key(),0)||0},
-  add(n,why){const v=this.bal()+n;MV.set(this.key(),v);this.sync();if(why)MV.toast(`+${n} Manga Coin${n>1?`s`:``} · ${why}`);return v},
-  spend(n){if(this.bal()<n)return false;MV.set(this.key(),this.bal()-n);this.sync();return true},
-  sync(){const e=$(`#nb`);if(e)e.textContent=this.bal()}
+  CK:`mv_coin_cache_`,
+  bal(){const u=MV.me();return u?+MV.get(this.CK+u.email,0)||0:0},
+  show(n){const u=MV.me();if(u)MV.set(this.CK+u.email,n);document.querySelectorAll(`#nb`).forEach(e=>e.textContent=n)},
+  rpc(fn,body){return MV.api(`/rest/v1/rpc/`+fn,{method:`POST`,auth:true,body:body||{}})},
+  async refresh(){const d=await this.rpc(`moedas_estado`);this.show(d.saldo);return d},
+  async ler(obra,paginas){const d=await this.rpc(`moedas_ler`,{p_obra:obra,p_paginas:paginas});this.show(d.saldo);
+    if(d.ganho>0)MV.toast(`+`+d.ganho+` Manga Coins · `+d.motivo);return d}
 };
 let _cn=0;
 /* moeda no estilo do site: aro lime, face azul com meio-tom e raios, livro aberto em quadros.
@@ -100,12 +102,6 @@ function coinSVG(sz=120,full=true){
   +`<g fill="none" stroke-width="2"><rect x="58" y="86" width="14" height="11"/><rect x="75" y="89" width="17" height="10" fill="${LI}"/><rect x="58" y="100" width="34" height="13"/><rect x="128" y="86" width="14" height="11"/><rect x="108" y="89" width="17" height="10"/><rect x="108" y="100" width="34" height="13" fill="${LI}"/></g><circle cx="65" cy="91.5" r="3" fill="${NV}" stroke="none"/><path d="M62 109q8-6 16 0t14-2M112 94l5 3 4-4 4 4" fill="none" stroke-width="1.8" stroke-linecap="round"/></g>`
   +`<path d="M140 56l2.5 7 7 2.5-7 2.5-2.5 7-2.5-7-7-2.5 7-2.5z" fill="${LI}"/><path d="M62 62l1.6 4.4 4.4 1.6-4.4 1.6-1.6 4.4-1.6-4.4-4.4-1.6 4.4-1.6z" fill="#fff"/>${txt}</svg>`
 }
-const savedTheme=MV.get(MV.K.t,null);
-if(savedTheme===`light`||savedTheme===`dark`)document.documentElement.dataset.theme=savedTheme;
-function isDarkTheme(){
-  const th=document.documentElement.dataset.theme;
-  return th?th===`dark`:matchMedia(`(prefers-color-scheme:dark)`).matches;
-}
 function layout(){
   const u=MV.me(),cur=MV.page();
   const n=$(`#nav`);
@@ -113,22 +109,18 @@ function layout(){
     const acts=u
       ?[
         ...(cur!==`biblioteca.html`?[`<a class="btn sm w" href="biblioteca.html">Biblioteca</a>`]:[]),
+        ...(cur!==`loja.html`?[`<a class="btn sm w" href="loja.html">Loja</a>`]:[]),
         ...(cur!==`moedas.html`?[`<a class="btn sm w coinlink" href="moedas.html" aria-label="Moedas">${coinSVG(20,false)}Moedas <b id="nb">${MV.coins.bal()}</b></a>`]:[]),
         ...(cur!==`planos.html`?[`<a class="btn sm w" href="planos.html">${u.plan?`Plano `+u.plan:`Planos`}</a>`]:[]),
         `<button class="btn sm" id="out">Sair</button>`
       ]
       :[];
-    n.innerHTML=`<nav><div class="wrap"><a class="logo" href="index.html" aria-label="Mangáverso"><i></i>Mangáverso</a><div class="act">${acts.join(``)}<button class="tbtn" id="theme" aria-label="Alternar tema" title="Alternar tema">◐</button></div></div></nav>`;
+    n.innerHTML=`<nav><div class="wrap"><a class="logo" href="index.html" aria-label="Mangáverso"><i></i>Mangáverso</a><div class="act">${acts.join(``)}</div></div></nav>`;
   }
   const f=$(`#foot`);
-  if(f)f.innerHTML=`<footer class="blue"><div class="wrap"><div class="big dsp">Mangáverso</div><div><p>Distribuição de mangás por assinatura e venda física.</p></div><div><p><a href="index.html">Início</a><a href="sobre.html">Sobre nós</a><a href="faq.html">FAQ</a>${u?`<a href="biblioteca.html">Biblioteca</a><a href="moedas.html">Moedas</a>`:`<a href="login.html">Entrar</a>`}</p><p>© 2026 Mangáverso. Todos os direitos reservados.</p></div></div></footer>`;
+  if(f)f.innerHTML=`<footer class="blue"><div class="wrap"><div class="big dsp">Mangáverso</div><div><p>Distribuição de mangás por assinatura e venda física.</p></div><div><p><a href="index.html">Início</a><a href="sobre.html">Sobre nós</a><a href="faq.html">FAQ</a>${u?`<a href="biblioteca.html">Biblioteca</a><a href="loja.html">Loja</a><a href="moedas.html">Moedas</a>`:`<a href="login.html">Entrar</a>`}</p><p>© 2026 Mangáverso. Todos os direitos reservados.</p></div></div></footer>`;
   const o=$(`#out`);if(o)o.onclick=()=>MV.logout();
-  const t=$(`#theme`);
-  if(t){
-    const sync=()=>{const d=isDarkTheme();t.setAttribute(`aria-label`,d?`Mudar para modo claro`:`Mudar para modo escuro`);t.title=d?`Mudar para modo claro`:`Mudar para modo escuro`};
-    sync();
-    t.onclick=()=>{const next=isDarkTheme()?`light`:`dark`;document.documentElement.dataset.theme=next;MV.set(MV.K.t,next);sync()};
-  }
+  if(u&&n)MV.coins.refresh().catch(()=>{});
 }
 layout();
 /* revelação ao rolar (desligada com prefers-reduced-motion) */

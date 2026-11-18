@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="gate">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Loja – Mangáverso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="blue phead" data-k="店"><div id="nav"></div>
+<div class="wrap"><h1>Edições <span class="lab">físicas</span></h1><p>Gostou de uma obra? Reserve a edição impressa e retire em uma loja parceira.</p></div></header>
+<main>
+<section><div class="wrap">
+<div class="sh"><h2>Como <span class="lab">funciona</span></h2></div>
+<div class="steps3">
+<div class="card bl"><div class="n" style="color:var(--lime)">01</div><h3>Escolha o volume</h3><p>Veja as edições impressas disponíveis e reserve a que quiser.</p></div>
+<div class="card li"><div class="n" style="color:var(--blue)">02</div><h3>Escolha a loja</h3><p>Selecione a loja parceira onde prefere retirar o seu mangá.</p></div>
+<div class="card"><div class="n" style="color:var(--accent)">03</div><h3>Retire com o código</h3><p>Apresente o código da reserva na loja. O pagamento é feito na retirada.</p></div>
+</div></div></section>
+<section class="blue"><div class="wrap">
+<div class="sh"><h2>Edições <span class="lab">disponíveis</span></h2><p class="mute">Valores de demonstração. Ao retirar um pedido você ganha 1 Manga Coin por real da compra.</p></div>
+<div class="shop" id="shop"><div class="empty mute">Carregando…</div></div>
+</div></section>
+<section><div class="wrap" style="max-width:860px">
+<div class="sh"><h2>Meus <span class="lab">pedidos</span></h2></div>
+<ul class="reslist" id="ord"></ul>
+</div></section>
+</main>
+<dialog id="dl"><button class="tbtn x" id="dlx" aria-label="Fechar">✕</button><div class="dlgbox" id="dlb"></div></dialog>
+<div id="foot"></div>
+<script src="app.js"></script>
+<script>
+if(MV.guard()){
+const esc=s=>String(s??``).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const brl=c=>(c/100).toLocaleString(`pt-BR`,{style:`currency`,currency:`BRL`});
+const api=p=>MV.api(p,{auth:true});
+const ST={reservado:`Reservado`,pronto:`Pronto para retirar`,retirado:`Retirado`,cancelado:`Cancelado`};
+let PR=[],LJ=[],cur=null;
+async function load(){
+  try{[PR,LJ]=await Promise.all([api(`/rest/v1/produtos?select=*&ativo=eq.true&order=titulo`),api(`/rest/v1/lojas?select=*&ativo=eq.true&order=nome`)])}
+  catch(e){$(`#shop`).innerHTML=`<div class="empty mute">Não foi possível carregar a loja agora. Tente novamente em instantes.</div>`;return}
+  drawP();orders()}
+function drawP(){
+  $(`#shop`).innerHTML=PR.length?PR.map((p,i)=>`<div class="card"><div class="tile v${i%4+1}" aria-hidden="true">${esc(p.kanji)}</div><h3>${esc(p.titulo)}</h3><p class="by">${esc(p.autor)}</p><div class="pr">${brl(p.preco_centavos)}</div><p class="est">${p.estoque<=0?`Esgotado`:p.estoque<=5?`Últimas ${p.estoque} unidades`:`Disponível para retirada`}</p><button class="btn b" data-p="${esc(p.id)}"${p.estoque>0&&LJ.length?``:` disabled`}>${p.estoque>0?`Reservar`:`Esgotado`}</button></div>`).join(``):`<div class="empty mute">Nenhuma edição disponível no momento.</div>`}
+async function orders(){
+  let o=[];try{o=await api(`/rest/v1/pedidos?select=id,codigo,qtd,total_centavos,status,criado_em,produtos(titulo),lojas(nome)&order=criado_em.desc`)}catch(e){}
+  $(`#ord`).innerHTML=o.length?o.map(x=>`<li><b>${esc(x.produtos&&x.produtos.titulo)}${x.qtd>1?` ×`+x.qtd:``}</b><code>${esc(x.codigo)}</code><span class="status ${esc(x.status)}">${ST[x.status]||esc(x.status)}</span><small>${esc(x.lojas&&x.lojas.nome)} · ${brl(x.total_centavos)} · ${new Date(x.criado_em).toLocaleDateString(`pt-BR`)}</small>${x.status==`reservado`?`<button class="btn sm" data-c="${x.id}">Cancelar</button>`:``}</li>`).join(``):`<li style="background:transparent;border-style:dashed"><span class="mute">Você ainda não fez reservas.</span></li>`}
+function openRes(id){
+  cur=PR.find(p=>p.id==id);if(!cur)return;
+  const max=Math.min(5,cur.estoque);
+  $(`#dlb`).innerHTML=`<h3>${esc(cur.titulo)}</h3><div class="mute" style="font-weight:700">${esc(cur.autor)} · ${brl(cur.preco_centavos)} cada</div>
+<label class="field" for="lj">Loja parceira para retirada</label><select class="sel" id="lj">${LJ.map(l=>`<option value="${l.id}">${esc(l.nome)}${l.cidade?` · `+esc(l.cidade):``}</option>`).join(``)}</select>
+<label class="field" for="qt">Quantidade</label><select class="sel" id="qt">${Array.from({length:max},(_,i)=>`<option>${i+1}</option>`).join(``)}</select>
+<div class="sum"><span>Total</span><span id="tt"></span></div><p class="mute" style="margin:0 0 18px;font-size:14px">O pagamento é feito na loja, na retirada.</p>
+<button class="btn b" id="go" style="width:100%">Confirmar reserva</button><p class="err" id="er" role="alert" style="margin-bottom:0"></p>`;
+  const tot=()=>$(`#tt`).textContent=brl(cur.preco_centavos*+$(`#qt`).value);tot();$(`#qt`).onchange=tot;
+  $(`#go`).onclick=async()=>{const b=$(`#go`);b.disabled=true;$(`#er`).textContent=``;
+    try{const d=await MV.coins.rpc(`loja_reservar`,{p_produto:cur.id,p_loja:+$(`#lj`).value,p_qtd:+$(`#qt`).value});
+      const nome=LJ.find(l=>l.id==$(`#lj`).value);
+      $(`#dlb`).innerHTML=`<h3>Reserva feita!</h3><p>Apresente este código na loja <b>${esc(nome&&nome.nome)}</b> para retirar o seu pedido:</p><div class="codebig">${esc(d.codigo)}</div><p class="mute" style="margin:0 0 20px">Total de ${brl(d.total_centavos)}, pago na retirada. Você também encontra o código em “Meus pedidos”.</p><button class="btn" id="ok" style="width:100%">Fechar</button>`;
+      $(`#ok`).onclick=()=>$(`#dl`).close();load()}
+    catch(x){$(`#er`).textContent=x.message;b.disabled=false}};
+  $(`#dl`).showModal()}
+$(`#shop`).onclick=e=>{const id=e.target.dataset.p;if(id)openRes(id)};
+$(`#ord`).onclick=async e=>{const id=e.target.dataset.c;if(!id||!confirm(`Cancelar esta reserva?`))return;
+  try{await MV.coins.rpc(`loja_cancelar`,{p_id:+id});MV.toast(`Reserva cancelada.`)}catch(x){MV.toast(x.message)}load()};
+$(`#dlx`).onclick=()=>$(`#dl`).close();$(`#dl`).onclick=e=>{if(e.target==$(`#dl`))$(`#dl`).close()};
+load();
+}
+</script>
+</body>
+</html>

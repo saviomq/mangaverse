@@ -22,9 +22,9 @@
 <section class="blue"><div class="wrap">
 <div class="sh"><h2>Como <span class="lab">ganhar</span></h2><p class="mute">Quanto mais você lê, mais moedas acumula.</p></div>
 <div class="earn">
-<div class="card"><span class="tag">+10 por título</span><h3 style="margin-top:14px">Leia até o fim</h3><p>Veja todas as páginas de uma obra no leitor. Cada título rende moedas uma única vez.</p></div>
-<div class="card"><span class="tag">+2 a cada 5 min</span><h3 style="margin-top:14px">Tempo de tela</h3><p>O relógio corre enquanto o leitor está aberto e você está lendo. Parado, ele pausa.</p></div>
-<div class="card"><span class="tag soon">Em breve</span><h3 style="margin-top:14px">Compras no site</h3><p>Edições físicas e brindes passarão a render moedas de volta.</p></div>
+<div class="card"><span class="tag">+10 por título</span><h3 style="margin-top:14px">Leia até o fim</h3><p>Veja as páginas de uma obra no leitor, sem pressa: cada página precisa ficar alguns segundos na tela. Cada título rende moedas uma única vez.</p></div>
+<div class="card"><span class="tag">+2 a cada 5 min</span><h3 style="margin-top:14px">Tempo de tela</h3><p>O relógio só corre enquanto você vira páginas. Leitor parado, aba em segundo plano ou 2 minutos sem ação pausam a contagem. Máximo de 20 moedas por dia.</p></div>
+<div class="card"><span class="tag">+1 por R$ 1</span><h3 style="margin-top:14px">Compras no site</h3><p>Retire um pedido da <a href="loja.html" style="text-decoration:underline">Loja</a> e ganhe moedas pelo valor da compra.</p></div>
 <div class="card"><span class="tag soon">Em breve</span><h3 style="margin-top:14px">Comprar moedas</h3><p>Complete o saldo com pacotes de moedas quando quiser um brinde mais cedo.</p></div>
 </div></div></section>
 
@@ -42,37 +42,33 @@
 <script src="app.js"></script>
 <script>
 if(MV.guard()){
-const U=MV.me(),RK=`mv_redeem_`+U.email;
-const RW=[
-{id:`d10`,t:`10% de desconto`,d:`Cupom para a próxima mensalidade de qualquer plano.`,c:120,k:`割`,v:1,s:`Cupom pronto para usar`},
-{id:`d25`,t:`25% de desconto`,d:`Cupom maior, válido para a mensalidade ou para o plano anual.`,c:260,k:`割`,v:2,s:`Cupom pronto para usar`},
-{id:`fr`,t:`Frete grátis`,d:`Entrega em casa sem frete na sua próxima edição física.`,c:180,k:`送`,v:3,s:`Cupom pronto para usar`},
-{id:`mp`,t:`Marca-página personalizado`,d:`Impresso com o seu título favorito e enviado para você.`,c:150,k:`栞`,v:4,s:`Aguardando envio`},
-{id:`po`,t:`Pôster de mangá`,d:`Pôster com arte exclusiva do Mangáverso.`,c:320,k:`絵`,v:1,s:`Aguardando envio`},
-{id:`af`,t:`Action figure`,d:`Figura colecionável de edição limitada.`,c:900,k:`像`,v:2,s:`Aguardando envio`}];
-const bal=()=>MV.coins.bal(),fmt=n=>n.toLocaleString(`pt-BR`);
-const list=()=>MV.get(RK,[]);
-$(`#plan`).innerHTML=U.plan?`Plano ${U.plan} ativo · troque suas moedas`:`Só assinantes trocam moedas. <a href="planos.html" style="text-decoration:underline">Ver planos</a>`;
+const U=MV.me(),C=MV.coins;
+const esc=s=>String(s??``).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>n.toLocaleString(`pt-BR`);
+const api=p=>MV.api(p,{auth:true});
+let ST={saldo:C.bal(),tempo_hoje:0,tempo_max:20},BR=[],RS=[];
+$(`#plan`).innerHTML=U.plan?`Plano ${esc(U.plan)} ativo · troque suas moedas`:`Só assinantes trocam moedas. <a href="planos.html" style="text-decoration:underline">Ver planos</a>`;
 $(`#coinbox`).innerHTML=coinSVG(230).replace(`class="coin"`,`class="coin flip"`);
+async function load(){
+  try{[ST,BR,RS]=await Promise.all([C.refresh(),api(`/rest/v1/brindes?select=*&ativo=eq.true&order=custo`),api(`/rest/v1/resgates?select=*&order=criado_em.desc`)])}
+  catch(e){$(`#rwd`).innerHTML=`<div class="card"><p>Não foi possível carregar suas moedas agora. Recarregue a página em instantes.</p></div>`;return}
+  draw()}
 function draw(){
-  const b=bal();$(`#bal`).textContent=fmt(b);
-  const next=RW.filter(r=>r.c>b).sort((x,y)=>x.c-y.c)[0];
-  $(`#goal`).innerHTML=next?`Faltam ${fmt(next.c-b)} para <b>${next.t}</b><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${next.c}" aria-valuenow="${b}"><i style="width:${Math.round(b/next.c*100)}%"></i></div>`:`Você já pode trocar por qualquer brinde.`;
-  $(`#rwd`).innerHTML=RW.map(r=>{
-    const ok=!!U.plan&&b>=r.c,lb=!U.plan?`Assine para trocar`:b>=r.c?`Trocar`:`Faltam ${fmt(r.c-b)}`;
-    return `<div class="card rw"><div class="tile v${r.v}" aria-hidden="true">${r.k}</div><h3>${r.t}</h3><p>${r.d}</p><div class="cost">${coinSVG(28,false)}${fmt(r.c)}</div><button class="btn b" data-r="${r.id}"${ok?``:` disabled`}>${lb}</button></div>`}).join(``);
-  const h=list();
-  $(`#res`).innerHTML=h.length?h.map(x=>`<li><b>${x.t}</b><code>${x.code}</code><small>${x.s} · ${new Date(x.at).toLocaleDateString(`pt-BR`)}</small></li>`).join(``):`<li style="background:transparent;border-style:dashed"><span class="mute">Você ainda não trocou moedas. Seus códigos de resgate aparecem aqui.</span></li>`;
-  MV.coins.sync();
-}
-$(`#rwd`).onclick=e=>{const id=e.target.dataset.r;if(!id)return;
-  const r=RW.find(x=>x.id==id);if(!r||!U.plan)return;
-  if(!confirm(`Trocar ${r.c} moedas por “${r.t}”?`))return;
-  if(!MV.coins.spend(r.c)){MV.toast(`Saldo insuficiente.`);draw();return}
-  const code=`MV-`+Math.random().toString(36).slice(2,8).toUpperCase();
-  MV.set(RK,[{id:r.id,t:r.t,s:r.s,code,at:Date.now()},...list()]);
-  MV.toast(`Troca feita! Código ${code}`);draw()};
-draw();
+  const b=ST.saldo;$(`#bal`).textContent=fmt(b);
+  const next=BR.filter(r=>r.custo>b).sort((x,y)=>x.custo-y.custo)[0];
+  $(`#goal`).innerHTML=(next?`Faltam ${fmt(next.custo-b)} para <b>${esc(next.titulo)}</b><div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${next.custo}" aria-valuenow="${b}"><i style="width:${Math.round(b/next.custo*100)}%"></i></div>`:`Você já pode trocar por qualquer brinde.`)+`<div style="margin-top:14px;font-size:14px;opacity:.9">Moedas de leitura hoje: ${ST.tempo_hoje} de ${ST.tempo_max}</div>`;
+  $(`#rwd`).innerHTML=BR.map(r=>{
+    const ok=!!U.plan&&b>=r.custo,lb=!U.plan?`Assine para trocar`:b>=r.custo?`Trocar`:`Faltam ${fmt(r.custo-b)}`;
+    return `<div class="card rw"><div class="tile v${+r.variante||1}" aria-hidden="true">${esc(r.kanji)}</div><h3>${esc(r.titulo)}</h3><p>${esc(r.descricao)}</p><div class="cost">${coinSVG(28,false)}${fmt(r.custo)}</div><button class="btn b" data-r="${esc(r.id)}"${ok?``:` disabled`}>${lb}</button></div>`}).join(``);
+  $(`#res`).innerHTML=RS.length?RS.map(x=>`<li><b>${esc(x.titulo)}</b><code>${esc(x.codigo)}</code><small>${x.tipo==`cupom`?`Cupom pronto para usar`:`Aguardando envio`} · ${new Date(x.criado_em).toLocaleDateString(`pt-BR`)}</small></li>`).join(``):`<li style="background:transparent;border-style:dashed"><span class="mute">Você ainda não trocou moedas. Seus códigos de resgate aparecem aqui.</span></li>`}
+$(`#rwd`).onclick=async e=>{const id=e.target.dataset.r;if(!id)return;
+  const r=BR.find(x=>x.id==id);if(!r||!U.plan)return;
+  if(!confirm(`Trocar ${r.custo} moedas por “${r.titulo}”?`))return;
+  e.target.disabled=true;
+  try{const d=await C.rpc(`moedas_resgatar`,{p_brinde:id});C.show(d.saldo);MV.toast(`Troca feita! Código `+d.codigo)}
+  catch(x){MV.toast(x.message)}
+  load()};
+load();
 }
 </script>
 </body>
