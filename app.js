@@ -3,13 +3,14 @@
    (nome, e-mail, plano) fica na tabela `perfis`. A chave publishable pode ficar no front-end,
    mas a tabela precisa de RLS ligada com políticas (veja as instruções no final da resposta). */
 const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s??``).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const NV=`#0a0f45`,BL=`#1a2bf5`,LI=`#c6ff2e`;
 const SB={
   url:`https://cekbqrkysrsvxkpfvuoe.supabase.co`,
   key:`sb_publishable_-ZWLJ7maCN_V52r7oZw6Bw_u9dV7UPc`
 };
 const MV={
-  K:{s:`mv_session`,a:`mv_token`,r:`mv_refresh`,p:`mv_profile`,t:`mv_theme`},
+  K:{s:`mv_session`,a:`mv_token`,r:`mv_refresh`,p:`mv_profile`},
   get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v===null||v===undefined?d:v}catch(e){return d}},
   set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},
   del(k){try{localStorage.removeItem(k)}catch(e){}},
@@ -39,17 +40,18 @@ const MV={
     let rows=await this.api(q,{auth:true});
     if(!rows.length)rows=await this.api(`/rest/v1/perfis`,{method:`POST`,auth:true,prefer:`return=representation`,body:{nome:nome||email.split(`@`)[0],email,plano:null}});
     const p=this.fromRow(rows[0]);this.set(this.K.p,p);return p},
-  async register(name,email,pw){
+  async register(name,email,pw,ref){
     email=email.trim().toLowerCase();name=name.trim();
+    const meta={nome:name};if(ref&&/^[A-Za-z0-9]{6,12}$/.test(ref))meta.ref=ref.toUpperCase();
     let d;
-    try{d=await this.api(`/auth/v1/signup`,{method:`POST`,body:{email,password:pw,data:{nome:name}}})}
+    try{d=await this.api(`/auth/v1/signup`,{method:`POST`,body:{email,password:pw,data:meta}})}
     catch(e){
       if(e.code==`user_already_exists`||/already registered/i.test(e.message))throw new Error(`Este e-mail já está cadastrado.`);
       if(e.code==`weak_password`||/password/i.test(e.message))throw new Error(`Senha muito fraca. Use pelo menos 6 caracteres.`);
       throw e}
     if(!d.access_token)return{confirm:true};
     this.saveTokens(d);this.set(this.K.s,email);
-    await this.loadProfile(email,name);return{confirm:false}},
+    await this.loadProfile(email,name);await this.claimRef(meta.ref);return{confirm:false}},
   async login(email,pw){
     email=email.trim().toLowerCase();let d;
     try{d=await this.api(`/auth/v1/token?grant_type=password`,{method:`POST`,body:{email,password:pw}})}
@@ -58,7 +60,12 @@ const MV={
       if(e.status==400||e.status==401)throw new Error(`E-mail ou senha incorretos.`);
       throw e}
     this.saveTokens(d);this.set(this.K.s,email);
-    await this.loadProfile(email,d.user&&d.user.user_metadata&&d.user.user_metadata.nome)},
+    await this.loadProfile(email,d.user&&d.user.user_metadata&&d.user.user_metadata.nome);
+    await this.claimRef(d.user&&d.user.user_metadata&&d.user.user_metadata.ref)},
+  /* convite: registra quem indicou (o servidor valida e só paga a recompensa quando o amigo escolhe um plano) */
+  async claimRef(ref){ref=ref||this.get(`mv_ref`,null);if(!ref)return;
+    try{await this.rpc(`convite_aceitar`,{p_codigo:ref});this.del(`mv_ref`)}catch(e){}},
+  rpc(fn,body){return this.api(`/rest/v1/rpc/`+fn,{method:`POST`,auth:true,body:body||{}})},
   logout(){[this.K.s,this.K.a,this.K.r,this.K.p].forEach(k=>this.del(k));location.href=`index.html`},
   /* atualiza na hora no cache local e grava no Supabase; devolve uma Promise */
   setPlan(p){
@@ -67,10 +74,10 @@ const MV={
     return this.api(`/rest/v1/perfis?email=eq.`+encodeURIComponent(u.email),{method:`PATCH`,auth:true,prefer:`return=minimal`,body:{plano:p}})
       .then(()=>true).catch(()=>{this.toast(`Não foi possível salvar o plano no servidor.`);return false})},
   guard(){
-    if(!this.me()){location.replace(`login.html?next=`+encodeURIComponent(this.page()));return false}
+    if(!this.me()){location.replace(`login.html?next=`+encodeURIComponent(this.page()+location.search));return false}
     document.documentElement.classList.remove(`gate`);return true},
   page(){return location.pathname.split(`/`).pop()||`index.html`},
-  next(def){const n=new URLSearchParams(location.search).get(`next`);return n&&/^[a-z]+\.html$/.test(n)?n:def},
+  next(def){const n=new URLSearchParams(location.search).get(`next`);return n&&/^[a-z]+\.html(\?[A-Za-z0-9=&_.%-]*)?$/.test(n)?n:def},
   toast(m){let t=$(`#toast`);if(!t){t=document.createElement(`div`);t.id=`toast`;t.className=`toast`;t.setAttribute(`role`,`status`);document.body.appendChild(t)}
     t.textContent=m;t.classList.add(`on`);clearTimeout(this._t);this._t=setTimeout(()=>t.classList.remove(`on`),2000)}
 };
@@ -80,10 +87,11 @@ MV.coins={
   CK:`mv_coin_cache_`,
   bal(){const u=MV.me();return u?+MV.get(this.CK+u.email,0)||0:0},
   show(n){const u=MV.me();if(u)MV.set(this.CK+u.email,n);document.querySelectorAll(`#nb`).forEach(e=>e.textContent=n)},
-  rpc(fn,body){return MV.api(`/rest/v1/rpc/`+fn,{method:`POST`,auth:true,body:body||{}})},
+  rpc(fn,body){return MV.rpc(fn,body)},
   async refresh(){const d=await this.rpc(`moedas_estado`);this.show(d.saldo);return d},
   async ler(obra,paginas){const d=await this.rpc(`moedas_ler`,{p_obra:obra,p_paginas:paginas});this.show(d.saldo);
-    if(d.ganho>0)MV.toast(`+`+d.ganho+` Manga Coins · `+d.motivo);return d}
+    if(d.ganho>0)MV.toast(`+`+d.ganho+` Manga Coins · `+d.motivo+(d.mult>1?` · ofensiva ×`+(+d.mult).toLocaleString(`pt-BR`):``));
+    document.dispatchEvent(new CustomEvent(`mv:coins`,{detail:d}));return d}
 };
 let _cn=0;
 /* moeda no estilo do site: aro lime, face azul com meio-tom e raios, livro aberto em quadros.
@@ -110,6 +118,7 @@ function layout(){
       ?[
         ...(cur!==`biblioteca.html`?[`<a class="btn sm w" href="biblioteca.html">Biblioteca</a>`]:[]),
         ...(cur!==`loja.html`?[`<a class="btn sm w" href="loja.html">Loja</a>`]:[]),
+        ...(cur!==`listas.html`?[`<a class="btn sm w" href="listas.html">Listas</a>`]:[]),
         ...(cur!==`moedas.html`?[`<a class="btn sm w coinlink" href="moedas.html" aria-label="Moedas">${coinSVG(20,false)}Moedas <b id="nb">${MV.coins.bal()}</b></a>`]:[]),
         ...(cur!==`planos.html`?[`<a class="btn sm w" href="planos.html">${u.plan?`Plano `+u.plan:`Planos`}</a>`]:[]),
         `<button class="btn sm" id="out">Sair</button>`
@@ -118,7 +127,7 @@ function layout(){
     n.innerHTML=`<nav><div class="wrap"><a class="logo" href="index.html" aria-label="Mangáverso"><i></i>Mangáverso</a><div class="act">${acts.join(``)}</div></div></nav>`;
   }
   const f=$(`#foot`);
-  if(f)f.innerHTML=`<footer class="blue"><div class="wrap"><div class="big dsp">Mangáverso</div><div><p>Distribuição de mangás por assinatura e venda física.</p></div><div><p><a href="index.html">Início</a><a href="sobre.html">Sobre nós</a><a href="faq.html">FAQ</a>${u?`<a href="biblioteca.html">Biblioteca</a><a href="loja.html">Loja</a><a href="moedas.html">Moedas</a>`:`<a href="login.html">Entrar</a>`}</p><p>© 2026 Mangáverso. Todos os direitos reservados.</p></div></div></footer>`;
+  if(f)f.innerHTML=`<footer class="blue"><div class="wrap"><div class="big dsp">Mangáverso</div><div><p>Distribuição de mangás por assinatura e venda física.</p></div><div><p><a href="index.html">Início</a><a href="sobre.html">Sobre nós</a><a href="faq.html">FAQ</a>${u?`<a href="biblioteca.html">Biblioteca</a><a href="loja.html">Loja</a><a href="listas.html">Listas</a><a href="moedas.html">Moedas</a>`:`<a href="login.html">Entrar</a>`}</p><p>© 2026 Mangáverso. Todos os direitos reservados.</p></div></div></footer>`;
   const o=$(`#out`);if(o)o.onclick=()=>MV.logout();
   if(u&&n)MV.coins.refresh().catch(()=>{});
 }
@@ -128,3 +137,5 @@ if(!matchMedia(`(prefers-reduced-motion:reduce)`).matches&&`IntersectionObserver
   const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const t=e.target;t.classList.add(`in`);io.unobserve(t);setTimeout(()=>t.classList.remove(`rv`,`in`),1500)}}),{threshold:.12});
   document.querySelectorAll(`main .card,main .sh,main .prose,main details,.band .wrap>*`).forEach((e,i)=>{e.classList.add(`rv`);e.style.setProperty(`--d`,(i%3)*90+`ms`);io.observe(e)});
 }
+/* limpeza única de dados antigos guardados no navegador por versões anteriores (tema claro/escuro e moedas locais) */
+try{Object.keys(localStorage).filter(k=>/^(mv_theme$|mv_coins_|mv_redeem_|mv_done_|mv_seen_|mv_time_)/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}

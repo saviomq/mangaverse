@@ -1,40 +1,6 @@
 /* Biblioteca do Mangáverso (requer app.js). Capas reais: assets/covers/ID.jpg
    Páginas reais: assets/manga/ID/1.jpg, 2.jpg... (ajuste "pages" abaixo conforme o número de páginas). */
-const WH=`#ffffff`,A=`https://archive.org/search?query=`;
 const U=MV.me();
-const ART={
-wave:`<circle class="f" cx="145" cy="70" r="30"/><path class="s" d="M-5 190C25 120 80 120 100 170S160 200 210 135"/><path class="s" d="M-5 225C35 170 85 175 115 210S175 230 210 185"/><path class="s" d="M-5 150C15 115 45 100 70 125"/>`,
-rabbit:`<ellipse class="f" cx="100" cy="175" rx="52" ry="44"/><ellipse class="f" cx="78" cy="85" rx="13" ry="46"/><ellipse class="f" cx="122" cy="85" rx="13" ry="46" transform="rotate(12 122 85)"/><circle class="w" cx="86" cy="165" r="6"/><circle class="w" cx="114" cy="165" r="6"/>`,
-toba:`<circle class="f" cx="100" cy="85" r="45"/><circle class="w" cx="84" cy="80" r="6"/><circle class="w" cx="116" cy="80" r="6"/><path class="s" d="M100 130v70M100 150l-40 30M100 150l40 20M100 200l-28 42M100 200l30 42"/>`,
-kib:`<rect class="f" x="22" y="40" width="72" height="80"/><rect class="s" x="106" y="40" width="72" height="80" style="stroke-width:5"/><rect class="s" x="22" y="132" width="156" height="60" style="stroke-width:5"/><circle class="w" cx="58" cy="80" r="14"/><path class="s" d="M118 105l22-44 22 44z" style="stroke-width:5"/>`,
-fuji:`<circle class="f" cx="50" cy="60" r="24"/><path class="f" d="M-5 225L95 85l100 140z"/><path class="w" d="M70 120l25-35 25 35-12-8-13 12-13-12z"/><path class="s" d="M-5 245c40-25 80-25 110 0s70 25 100-5" style="stroke-width:5"/>`,
-dots:`<g class="f"><circle cx="45" cy="60" r="16"/><circle cx="100" cy="60" r="16"/><circle cx="155" cy="60" r="16"/><circle cx="45" cy="115" r="16"/><circle cx="155" cy="115" r="16"/><circle cx="45" cy="170" r="16"/><circle cx="100" cy="170" r="16"/><circle cx="155" cy="170" r="16"/></g><path class="s" d="M70 115c10-14 50-14 60 0" style="stroke-width:6"/>`,
-oni:`<circle class="f" cx="100" cy="130" r="64"/><path class="f" d="M52 90l-12-52 40 30zM148 90l12-52-40 30z"/><circle class="w" cx="78" cy="120" r="9"/><circle class="w" cx="122" cy="120" r="9"/><path class="w" d="M70 160h60l-8 22H78z"/>`,
-news:`<rect class="f" x="30" y="36" width="140" height="190" rx="6"/><g class="w"><rect x="44" y="52" width="112" height="22"/><rect x="44" y="88" width="50" height="50"/><rect x="104" y="90" width="52" height="6"/><rect x="104" y="106" width="52" height="6"/><rect x="44" y="152" width="112" height="6"/><rect x="44" y="168" width="112" height="6"/></g>`,
-hats:`<path class="f" d="M30 120l35-80 35 80zM100 120l35-80 35 80z"/><circle class="f" cx="65" cy="160" r="26"/><circle class="f" cx="135" cy="160" r="26"/><path class="s" d="M65 186v50M135 186v50" style="stroke-width:6"/>`,
-city:`<g class="f"><rect x="20" y="130" width="34" height="110"/><rect x="62" y="80" width="38" height="160"/><rect x="108" y="110" width="30" height="130"/><rect x="146" y="60" width="36" height="180"/></g><path class="f" d="M100 20l7 15 16 2-12 11 3 16-14-8-14 8 3-16-12-11 16-2z"/>`,
-board:`<path class="s" d="M25 50h150v50H25v50h150v50H35" style="stroke-width:30;opacity:.35"/><g class="f"><rect x="30" y="42" width="20" height="16"/><rect x="82" y="42" width="20" height="16"/><rect x="134" y="92" width="20" height="16"/><rect x="60" y="142" width="20" height="16"/><rect x="112" y="192" width="20" height="16"/></g><circle class="f" cx="160" cy="215" r="16"/>`};
-const KEYS=Object.keys(ART),P=[[BL,LI],[LI,BL],[WH,BL],[NV,LI]];
-const CATS=[
-{id:`Fábulas e folclore`,d:`Animais falantes, demônios e criaturas`},
-{id:`Mestre Hokusai`,d:`Os cadernos que popularizaram a palavra manga`},
-{id:`Humor e sátira`,d:`Caricaturas, tiras e revistas de humor`},
-{id:`Cidade e cotidiano`,d:`A vida moderna nas ruas e nos jogos`}];
-const B=[
-{id:`choju`,cat:0,n:`Chōjū-jinbutsu-giga`,au:`Atribuído a Toba Sōjō`,y:`séc. XII–XIII`,s:1150,era:`Origens`,k:`戯画`,art:`rabbit`,p:0,fmt:`4 rolos pintados`,d:`Os “rolos dos animais” mostram coelhos, rãs e macacos imitando o comportamento humano. Costumam ser apontados como um dos ancestrais do mangá.`,l:A+`Choju-giga`},
-{id:`kyosai`,cat:0,n:`Caricaturas de Kyōsai`,au:`Kawanabe Kyōsai`,y:`séc. XIX`,s:1870,era:`Edo`,k:`暁斎`,art:`oni`,p:1,fmt:`Caricaturas e esboços`,d:`Sátiras e cenas fantásticas do artista Kawanabe Kyōsai (1831–1889), mestre do humor visual e dos demônios no fim do período Edo.`,l:A+`Kawanabe+Kyosai`},
-{id:`hokusai-1`,cat:1,n:`Hokusai Manga, vol. 1`,au:`Katsushika Hokusai`,y:`1814`,s:1814,era:`Edo`,k:`北斎`,art:`wave`,p:0,fmt:`Caderno de esboços`,d:`O primeiro dos cadernos em que Hokusai reuniu pessoas, animais, paisagens e criaturas. Foi aqui que a palavra manga ganhou fama.`,l:A+`Hokusai+Manga`},
-{id:`hokusai-completo`,cat:1,n:`Hokusai Manga, coleção completa`,au:`Katsushika Hokusai`,y:`1814–1878`,s:1815,era:`Edo`,k:`漫画`,art:`fuji`,p:2,fmt:`15 volumes`,d:`A série de 15 cadernos publicada entre 1814 e 1878, com milhares de esboços de cenas do cotidiano ao sobrenatural.`,l:A+`Hokusai+Manga+15`},
-{id:`hokusai-selecao`,cat:1,n:`Seleção de Hokusai Manga`,au:`Katsushika Hokusai`,y:`1835`,s:1835,era:`Edo`,k:`図`,art:`dots`,p:3,fmt:`Gravuras selecionadas`,d:`Imagens escolhidas dos cadernos, digitalizadas pela Biblioteca Pública de Nova York.`,l:`https://digitalcollections.nypl.org/items/ac061560-6bf2-0135-67aa-03ce6a2bed62`},
-{id:`toba-e`,cat:2,n:`Toba-e`,au:`Vários artistas`,y:`séc. XVIII`,s:1700,era:`Edo`,k:`鳥羽`,art:`toba`,p:1,fmt:`Livros de caricaturas`,d:`Livrinhos ilustrados de traço rápido e humor, batizados em homenagem ao pintor dos rolos Chōjū-giga.`,l:A+`Toba-e`},
-{id:`kibyoshi`,cat:2,n:`Kibyōshi`,au:`Vários autores`,y:`1780–1810`,s:1780,era:`Edo`,k:`黄表紙`,art:`kib`,p:3,fmt:`Livros de imagem e texto`,d:`Os “livros de capa amarela” combinavam desenho e texto na mesma página, com sátira social.`,l:A+`Kibyoshi`},
-{id:`jiji`,cat:2,n:`Jiji Manga`,au:`Rakuten Kitazawa`,y:`1890s`,s:1899,era:`Meiji–Taishō`,k:`時事`,art:`news`,p:0,fmt:`Tiras de jornal`,d:`Tiras de humor político no jornal Jiji Shinpō. Em 1899, Kitazawa já usava “manga” para suas caricaturas.`,l:A+`Jiji+Manga+Kitazawa`},
-{id:`tokyo-puck`,cat:2,n:`Tokyo Puck`,au:`Rakuten Kitazawa`,y:`1905`,s:1905,era:`Meiji–Taishō`,k:`パック`,art:`city`,p:3,fmt:`Revista de humor`,d:`Revista colorida de sátira e caricatura fundada por Kitazawa, que reunia desenhistas do Japão.`,l:A+`Tokyo+Puck`},
-{id:`tagosaku`,cat:3,n:`Tagosaku e Mokubē visitam Tóquio`,au:`Rakuten Kitazawa`,y:`1902`,s:1902,era:`Meiji–Taishō`,k:`東京`,art:`hats`,p:2,fmt:`Tira em quadrinhos`,d:`Dois caipiras exploram a capital em uma tira considerada pioneira dos quadrinhos japoneses modernos.`,l:A+`Tagosaku+Mokube+Tokyo+Kenbutsu`},
-{id:`sugoroku`,cat:3,n:`Manga Sugoroku`,au:`Okamoto Ippei`,y:`1929`,s:1929,era:`Meiji–Taishō`,k:`双六`,art:`board`,p:1,fmt:`Jogo de tabuleiro ilustrado`,d:`Jogo criado por Okamoto Ippei (1886–1948) que retrata as escolhas de vida da jovem moderna dos anos 1920.`,l:A+`Okamoto+Ippei`}
-];
-B.forEach(b=>b.pages=8);
-const cover=b=>`<div class="cover" style="--b:${P[b.p][0]};--f:${P[b.p][1]}"><svg class="art" viewBox="0 0 200 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${ART[b.art]}</svg><span class="k">${b.k}</span><div class="t">${b.n}<i>${b.au} · ${b.y}</i></div><img src="assets/covers/${b.id}.jpg" alt="Capa de ${b.n}" loading="lazy" onload="this.parentNode.classList.add('real')" onerror="this.remove()"></div>`;
 /* estado por usuário */
 const FK=`mv_fav_`+U.email,PK=id=>`mv_prog_${U.email}_${id}`;
 let cat=-1,cur=null;const fav=new Set(MV.get(FK,[])),prog={};
@@ -61,8 +27,8 @@ document.addEventListener(`click`,e=>{
   const c=e.target.closest(`.cv [data-i]`);if(c){cur=+c.dataset.i;openB()}});
 function toggleFav(n){fav.has(n)?(fav.delete(n),MV.toast(`Removido dos favoritos`)):(fav.add(n),MV.toast(`Adicionado aos favoritos`));MV.set(FK,[...fav]);render();if($(`#dlg`).open)openB()}
 function openB(){const b=B[cur];
-  $(`#dbody`).innerHTML=`<div>${cover(b)}</div><div><span class="tag">${CATS[b.cat].id} · domínio público</span><h3 style="margin-top:14px">${b.n}</h3><div class="by">${b.au}</div><p style="margin:0;color:var(--mute);font-weight:500">${b.d}</p><dl><dt>Período</dt><dd>${b.y}</dd><dt>Época</dt><dd>${b.era}</dd><dt>Formato</dt><dd>${b.fmt}</dd></dl><div class="da"><button class="btn b" id="rd1">${prog[b.id]!==undefined?`Continuar leitura`:`Ler agora`}</button><button class="btn" id="fv">${fav.has(b.n)?`Remover favorito`:`Favoritar`}</button><a class="btn w" href="${b.l}" target="_blank" rel="noopener">Acervo original</a></div></div>`;
-  $(`#fv`).onclick=()=>toggleFav(b.n);$(`#rd1`).onclick=()=>{$(`#dlg`).close();openR(b)};if(!$(`#dlg`).open)$(`#dlg`).showModal()}
+  $(`#dbody`).innerHTML=`<div>${cover(b)}</div><div><span class="tag">${CATS[b.cat].id} · domínio público</span><h3 style="margin-top:14px">${b.n}</h3><div class="by">${b.au}</div><p style="margin:0;color:var(--mute);font-weight:500">${b.d}</p><dl><dt>Período</dt><dd>${b.y}</dd><dt>Época</dt><dd>${b.era}</dd><dt>Formato</dt><dd>${b.fmt}</dd></dl><div class="da"><button class="btn b" id="rd1">${prog[b.id]!==undefined?`Continuar leitura`:`Ler agora`}</button><button class="btn" id="fv">${fav.has(b.n)?`Remover favorito`:`Favoritar`}</button><button class="btn w" id="al">Adicionar a uma lista</button><a class="btn w" href="${b.l}" target="_blank" rel="noopener">Acervo original</a></div></div>`;
+  $(`#fv`).onclick=()=>toggleFav(b.n);$(`#al`).onclick=()=>pickList(b);$(`#rd1`).onclick=()=>{$(`#dlg`).close();openR(b)};if(!$(`#dlg`).open)$(`#dlg`).showModal()}
 $(`#close`).onclick=()=>$(`#dlg`).close();$(`#dlg`).onclick=e=>{if(e.target==$(`#dlg`))$(`#dlg`).close()};
 /* páginas de demonstração (usadas quando não há imagens reais) */
 const L=[[[14,14,372,200],[14,226,180,180],[206,226,180,180],[14,418,372,168]],[[14,14,180,270],[206,14,180,130],[206,156,180,128],[14,296,372,290]],[[14,14,372,130],[14,156,120,200],[146,156,240,200],[14,368,372,218]]];
@@ -86,7 +52,7 @@ function demo(b,n,N){
 const pageEl=(b,n)=>`<div class="pg" data-n="${n}">${demo(b,n,b.pages)}<img src="assets/manga/${b.id}/${n+1}.jpg" alt="${b.n}, página ${n+1}" onerror="this.remove()"></div>`;
 /* leitor */
 const R={b:null,i:0,mode:`page`,rtl:true,z:1};
-function openR(b){R.b=b;R.i=Math.min(prog[b.id]??0,b.pages-1);$(`#rtitle`).textContent=b.n;$(`#sl`).max=b.pages;rdr();if(!$(`#rd`).open)$(`#rd`).showModal();fit()}
+function openR(b){R.b=b;R.i=Math.min(prog[b.id]??0,b.pages-1);$(`#rtitle`).textContent=b.n;buyLink(b);streakInit();$(`#sl`).max=b.pages;rdr();if(!$(`#rd`).open)$(`#rd`).showModal();fit()}
 function rdr(){
   const b=R.b,N=b.pages;
   $(`#inner`).style.setProperty(`--z`,R.z);$(`#inner`).style.setProperty(`--n`,R.mode==`spread`?2:1);$(`#stage`).classList.toggle(`vs`,R.mode==`scroll`);
@@ -139,3 +105,34 @@ function fit(){const r=$(`#rd`);if(!r.open)return;
   r.style.setProperty(`--ch`,(r.querySelector(`.rt`).offsetHeight+r.querySelector(`.rb`).offsetHeight+20)+`px`)}
 addEventListener(`resize`,fit);document.addEventListener(`fullscreenchange`,()=>setTimeout(fit,50));
 render();
+
+/* compra da edição física: link discreto na barra do leitor, abre em outra aba para não interromper a leitura */
+function buyLink(b){$(`#buy`).href=`loja.html?q=`+encodeURIComponent(b.n)+`&obra=`+encodeURIComponent(b.id)}
+/* selo de ofensiva diária no leitor (o servidor calcula; aqui só exibimos) */
+function streakShow(n,m){const e=$(`#strk`);if(!(n>0)){e.hidden=true;return}
+  e.textContent=`Ofensiva ${n} ${n==1?`dia`:`dias`}`+(m>1?` · ×${(+m).toLocaleString(`pt-BR`)}`:``);e.hidden=false}
+function streakInit(){MV.rpc(`ofensiva_estado`).then(s=>streakShow(s.atual,s.mult)).catch(()=>{$(`#strk`).hidden=true})}
+document.addEventListener(`mv:coins`,e=>{const d=e.detail||{};if(d.ofensiva!==undefined)streakShow(d.ofensiva,d.mult)});
+/* listas personalizadas: escolher em quais listas a obra aparece */
+async function pickList(b){
+  let d=$(`#dlL`);
+  if(!d){d=document.createElement(`dialog`);d.id=`dlL`;d.innerHTML=`<button class="tbtn x" id="dlLx" aria-label="Fechar">✕</button><div class="dlgbox" id="dlLb"></div>`;document.body.appendChild(d);
+    $(`#dlLx`).onclick=()=>d.close();d.onclick=e=>{if(e.target==d)d.close()}}
+  const box=$(`#dlLb`);box.innerHTML=`<h3>Adicionar a uma lista</h3><p class="mute" style="margin:6px 0 0">${esc(b.n)}</p><div id="dlLl"><p class="mute">Carregando…</p></div>
+<form class="lnew" id="dlLf"><input id="dlLn" maxlength="80" placeholder="Nova lista" aria-label="Nome da nova lista"><button class="btn b sm" type="submit">Criar e adicionar</button></form><p class="err" id="dlLe" role="alert"></p>`;
+  if(!d.open)d.showModal();
+  const draw=async()=>{let L=[];
+    try{L=await MV.api(`/rest/v1/listas?select=id,titulo,lista_itens(obra)&order=atualizado_em.desc`,{auth:true})}
+    catch(e){$(`#dlLl`).innerHTML=`<p class="err">Não foi possível carregar suas listas agora.</p>`;return}
+    $(`#dlLl`).innerHTML=L.length?L.map(l=>`<label class="lrow"><input type="checkbox" data-l="${esc(l.id)}"${l.lista_itens.some(i=>i.obra==b.id)?` checked`:``}>${esc(l.titulo)}<small>${l.lista_itens.length}</small></label>`).join(``):`<p class="mute" style="margin-top:14px">Você ainda não tem listas. Crie a primeira abaixo.</p>`};
+  $(`#dlLl`).onchange=async e=>{const c=e.target,id=c.dataset.l;if(!id)return;c.disabled=true;
+    try{if(c.checked)await MV.api(`/rest/v1/lista_itens`,{method:`POST`,auth:true,prefer:`resolution=ignore-duplicates,return=minimal`,body:{lista_id:id,obra:b.id}});
+      else await MV.api(`/rest/v1/lista_itens?lista_id=eq.`+encodeURIComponent(id)+`&obra=eq.`+encodeURIComponent(b.id),{method:`DELETE`,auth:true,prefer:`return=minimal`});
+      MV.toast(c.checked?`Adicionada à lista`:`Removida da lista`)}
+    catch(x){c.checked=!c.checked;MV.toast(x.message)}c.disabled=false};
+  $(`#dlLf`).onsubmit=async e=>{e.preventDefault();const t=$(`#dlLn`).value.trim();if(!t)return;$(`#dlLe`).textContent=``;
+    try{const r=await MV.api(`/rest/v1/listas`,{method:`POST`,auth:true,prefer:`return=representation`,body:{titulo:t}});
+      await MV.api(`/rest/v1/lista_itens`,{method:`POST`,auth:true,prefer:`return=minimal`,body:{lista_id:r[0].id,obra:b.id}});
+      $(`#dlLn`).value=``;MV.toast(`Lista criada`);draw()}
+    catch(x){$(`#dlLe`).textContent=x.message}};
+  draw()}

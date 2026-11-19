@@ -20,7 +20,7 @@
 </div></section></main>
 <dialog id="dlg"><button class="tbtn x" id="close" aria-label="Fechar">✕</button><div class="dg" id="dbody"></div></dialog>
 <dialog id="rd" aria-label="Leitor de mangá">
-<div class="rt"><h3 id="rtitle"></h3>
+<div class="rt"><h3 id="rtitle"></h3><span class="strk" id="strk" hidden title="Dias seguidos lendo no Mangáverso"></span><a class="rbt buy" id="buy" href="loja.html" target="_blank" rel="noopener" title="Abre a Loja em outra aba, sem interromper a leitura">Comprar edição física ↗</a>
 <button class="rbt" data-m="page" aria-pressed="true">Página</button><button class="rbt" data-m="spread" aria-pressed="false">Dupla</button><button class="rbt" data-m="scroll" aria-pressed="false">Vertical</button>
 <button class="rbt" id="rtl" aria-pressed="true">日本式 ← direita p/ esquerda</button>
 <button class="rbt" id="zo" aria-label="Diminuir zoom">−</button><button class="rbt" id="zi" aria-label="Aumentar zoom">+</button><button class="rbt" id="fs">Tela cheia</button><button class="rbt rx" id="rx">Fechar ✕</button></div>
@@ -31,6 +31,7 @@
 </dialog>
 <div id="foot"></div>
 <script src="app.js"></script>
+<script src="catalogo.js"></script>
 <script>
 if(MV.guard()){const s=document.createElement('script');s.src='biblioteca.js';document.body.appendChild(s)}
 </script>

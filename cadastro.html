@@ -26,6 +26,9 @@
 <script src="app.js"></script>
 <script>
 if(MV.me())location.replace('planos.html');
+/* link de convite: cadastro.html?ref=CODIGO (o código fica guardado até a conta ser criada) */
+const REF=(new URLSearchParams(location.search).get('ref')||'').trim(),REFOK=/^[A-Za-z0-9]{6,12}$/.test(REF);
+if(REFOK){MV.set('mv_ref',REF.toUpperCase());const hp=document.querySelector('.phead p');if(hp)hp.textContent='Você foi convidado por um amigo. Crie sua conta e escolha seu plano.'}
 $('#f').onsubmit=async e=>{e.preventDefault();const b=$('#go'),er=$('#err');er.textContent='';er.style.color='';
   const nm=$('#nm').value.trim(),em=$('#em').value.trim(),pw=$('#pw').value;
   if(nm.length<2)return er.textContent='Informe seu nome.';
@@ -34,7 +37,7 @@ $('#f').onsubmit=async e=>{e.preventDefault();const b=$('#go'),er=$('#err');er.t
   if(pw!==$('#pw2').value)return er.textContent='As senhas não coincidem.';
   if(!$('#ok').checked)return er.textContent='Aceite os termos para continuar.';
   b.disabled=true;
-  try{const r=await MV.register(nm,em,pw);if(r&&r.confirm){er.style.color='#0a8f3c';er.textContent='Conta criada! Enviamos um e-mail de confirmação. Confirme e depois entre.';b.disabled=false;return}location.href='planos.html'}
+  try{const r=await MV.register(nm,em,pw,REFOK?REF:MV.get('mv_ref',null));if(r&&r.confirm){er.style.color='#0a8f3c';er.textContent='Conta criada! Enviamos um e-mail de confirmação. Confirme e depois entre.';b.disabled=false;return}location.href='planos.html'}
   catch(x){er.textContent=x.message;b.disabled=false}};
 </script>
 </body>

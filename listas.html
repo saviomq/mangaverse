@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="gate">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Listas – Mangáverso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="blue phead" data-k="録"><div id="nav"></div>
+<div class="wrap"><h1 id="lt">Minhas listas</h1><p id="lp">Reúna as obras que você quer ler ou guardar, compartilhe por link e exporte em XML.</p></div></header>
+<main><section><div class="wrap">
+
+<div id="mine">
+<form class="lnew" id="nf" style="margin:0 0 28px"><input id="nn" maxlength="80" placeholder="Nome da nova lista, por exemplo: Para ler no fim de semana" aria-label="Nome da nova lista"><button class="btn b" type="submit">Criar lista</button></form>
+<p class="err" id="ne" role="alert" style="margin:-14px 0 18px"></p>
+<div class="lcards" id="lists"><div class="empty mute">Carregando…</div></div>
+</div>
+
+<div id="shared" hidden>
+<div class="lhead" id="sh"></div>
+<div class="minis" id="sitems"></div>
+</div>
+
+</div></section></main>
+<dialog id="pk"><button class="tbtn x" id="pkx" aria-label="Fechar">✕</button><div class="dlgbox"><h3 id="pkt">Adicionar obras</h3><input class="pksearch" id="pks" type="search" placeholder="Buscar por título ou autor…" aria-label="Buscar obra"><div class="plist" id="pkl"></div></div></dialog>
+<div id="foot"></div>
+<script src="app.js"></script>
+<script src="catalogo.js"></script>
+<script>
+if(MV.guard()){
+const api=(p,o={})=>MV.api(p,{auth:true,...o});
+const tok=(new URLSearchParams(location.search).get(`l`)||``).trim();
+const shareUrl=l=>{const u=new URL(`listas.html`,location.href);u.search=`?l=`+l.token;return u.href};
+const slug=t=>(String(t).normalize(`NFD`).replace(/[\u0300-\u036f]/g,``).toLowerCase().replace(/[^a-z0-9]+/g,`-`).replace(/^-|-$/g,``)||`lista`);
+/* exportação em XML (gerada no navegador, sem passar pelo servidor) */
+const xe=s=>String(s??``).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,``).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`).replace(/'/g,`&apos;`);
+function listaXML(titulo,ids,autor){
+  const obras=ids.map(id=>{const b=BY[id];
+    return b?`    <obra id="${xe(b.id)}">\n      <titulo>${xe(b.n)}</titulo>\n      <autor>${xe(b.au)}</autor>\n      <periodo>${xe(b.y)}</periodo>\n      <categoria>${xe(CATS[b.cat].id)}</categoria>\n      <formato>${xe(b.fmt)}</formato>\n      <acervo>${xe(b.l)}</acervo>\n    </obra>`:`    <obra id="${xe(id)}"/>`}).join(`\n`);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<lista nome="${xe(titulo)}"${autor?` autor="${xe(autor)}"`:``} origem="Mangáverso" exportado="${new Date().toISOString()}" total="${ids.length}">\n  <obras>\n${obras}\n  </obras>\n</lista>\n`}
+function baixar(titulo,ids,autor){
+  const a=document.createElement(`a`);a.href=URL.createObjectURL(new Blob([listaXML(titulo,ids,autor)],{type:`application/xml;charset=utf-8`}));
+  a.download=slug(titulo)+`.xml`;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+async function copiar(t){
+  try{await navigator.clipboard.writeText(t)}catch(e){const i=document.createElement(`input`);i.value=t;document.body.appendChild(i);i.select();document.execCommand(`copy`);i.remove()}
+  MV.toast(`Link copiado`)}
+const mini=(b,rm)=>`<div class="mini">${rm?`<button class="rm" data-rm="${esc(b.id)}" aria-label="Remover ${esc(b.n)} da lista">✕</button>`:``}${cover(b)}<div class="mt">${esc(b.n)}</div></div>`;
+
+/* ---------- lista compartilhada por link ---------- */
+async function verCompartilhada(){
+  $(`#mine`).hidden=true;$(`#shared`).hidden=false;
+  let l=null;try{l=await MV.rpc(`lista_ver`,{p_token:tok})}catch(e){$(`#sh`).innerHTML=`<p class="err">Não foi possível abrir esta lista agora.</p>`;return}
+  if(!l){$(`#lt`).textContent=`Lista indisponível`;$(`#lp`).textContent=`Este link não existe mais ou o dono parou de compartilhar.`;$(`#sh`).innerHTML=`<a class="btn" href="listas.html">Ver minhas listas</a>`;return}
+  $(`#lt`).textContent=l.titulo;$(`#lp`).textContent=`Lista de ${l.autor} · ${l.itens.length} ${l.itens.length==1?`obra`:`obras`}`;document.title=l.titulo+` – Mangáverso`;
+  $(`#sh`).innerHTML=(l.minha?`<a class="btn b" href="listas.html">Editar em Minhas listas</a>`:`<button class="btn b" id="cp">Salvar na minha conta</button>`)+`<button class="btn w" id="xm"${l.itens.length?``:` disabled`}>Exportar XML</button><a class="btn w" href="biblioteca.html">Abrir biblioteca</a>`;
+  $(`#sitems`).innerHTML=l.itens.length?l.itens.map(id=>BY[id]?mini(BY[id]):``).join(``):`<div class="empty mute" style="grid-column:1/-1">Esta lista ainda está vazia.</div>`;
+  $(`#xm`).onclick=()=>baixar(l.titulo,l.itens,l.autor);
+  const cp=$(`#cp`);if(cp)cp.onclick=async()=>{cp.disabled=true;try{await MV.rpc(`lista_copiar`,{p_token:tok});MV.toast(`Lista salva na sua conta`);setTimeout(()=>location.href=`listas.html`,900)}catch(x){MV.toast(x.message);cp.disabled=false}}}
+
+/* ---------- minhas listas ---------- */
+let LS=[],pkList=null;
+const itens=l=>l.lista_itens.slice().sort((a,b)=>a.adicionado_em<b.adicionado_em?-1:1).map(i=>i.obra);
+async function load(){
+  try{LS=await api(`/rest/v1/listas?select=id,titulo,compartilhada,token,atualizado_em,lista_itens(obra,adicionado_em)&order=atualizado_em.desc`)}
+  catch(e){$(`#lists`).innerHTML=`<div class="empty mute">Não foi possível carregar suas listas agora. Tente novamente em instantes.</div>`;return}
+  draw()}
+function draw(){
+  $(`#lists`).innerHTML=LS.length?LS.map(l=>{const ids=itens(l),n=ids.length;
+    return `<article class="card lc" data-id="${esc(l.id)}"><h3>${esc(l.titulo)}</h3><div class="meta2">${n} ${n==1?`obra`:`obras`} · ${l.compartilhada?`Compartilhada por link`:`Privada`}</div>
+<div class="minis">${n?ids.map(id=>BY[id]?mini(BY[id],true):``).join(``):`<p class="mute" style="grid-column:1/-1;margin:0">Lista vazia. Use “Adicionar obras” ou o botão “Adicionar a uma lista” na biblioteca.</p>`}</div>
+<div class="lact"><button class="btn b sm" data-a="add">Adicionar obras</button><button class="btn w sm" data-a="share">${l.compartilhada?`Parar de compartilhar`:`Compartilhar`}</button><button class="btn w sm" data-a="xml"${n?``:` disabled`}>Exportar XML</button><button class="btn w sm" data-a="ren">Renomear</button><button class="btn w sm" data-a="del">Excluir</button></div>
+${l.compartilhada?`<div class="sharebox"><input readonly value="${esc(shareUrl(l))}" aria-label="Link da lista"><button class="btn sm" data-a="copy">Copiar link</button><button class="btn w sm" data-a="renew" title="Gera um link novo e desativa o anterior">Novo link</button></div>`:``}</article>`}).join(``)
+  :`<div class="empty mute">Você ainda não criou nenhuma lista. Dê um nome acima para começar.</div>`}
+$(`#nf`).onsubmit=async e=>{e.preventDefault();const t=$(`#nn`).value.trim();$(`#ne`).textContent=``;if(!t)return;
+  try{await api(`/rest/v1/listas`,{method:`POST`,prefer:`return=minimal`,body:{titulo:t}});$(`#nn`).value=``;MV.toast(`Lista criada`);load()}
+  catch(x){$(`#ne`).textContent=x.message}};
+$(`#lists`).onclick=async e=>{
+  const t=e.target.closest(`[data-a],[data-rm]`);if(!t)return;
+  const l=LS.find(x=>x.id==t.closest(`[data-id]`).dataset.id);if(!l)return;
+  try{
+    if(t.dataset.rm){await api(`/rest/v1/lista_itens?lista_id=eq.`+encodeURIComponent(l.id)+`&obra=eq.`+encodeURIComponent(t.dataset.rm),{method:`DELETE`,prefer:`return=minimal`});load();return}
+    const a=t.dataset.a;
+    if(a==`add`){abrirPicker(l)}
+    else if(a==`share`){await api(`/rest/v1/listas?id=eq.`+encodeURIComponent(l.id),{method:`PATCH`,prefer:`return=minimal`,body:{compartilhada:!l.compartilhada}});MV.toast(l.compartilhada?`Link desativado`:`Link ativado`);load()}
+    else if(a==`copy`){copiar(shareUrl(l))}
+    else if(a==`renew`){if(!confirm(`Gerar um link novo? O link atual deixará de funcionar.`))return;await MV.rpc(`lista_novo_token`,{p_id:l.id});MV.toast(`Novo link gerado`);load()}
+    else if(a==`xml`){baixar(l.titulo,itens(l))}
+    else if(a==`ren`){const n=prompt(`Novo nome da lista`,l.titulo);if(n&&n.trim()&&n.trim()!=l.titulo){await api(`/rest/v1/listas?id=eq.`+encodeURIComponent(l.id),{method:`PATCH`,prefer:`return=minimal`,body:{titulo:n.trim()}});load()}}
+    else if(a==`del`){if(!confirm(`Excluir a lista “${l.titulo}”? Esta ação não pode ser desfeita.`))return;await api(`/rest/v1/listas?id=eq.`+encodeURIComponent(l.id),{method:`DELETE`,prefer:`return=minimal`});MV.toast(`Lista excluída`);load()}
+  }catch(x){MV.toast(x.message)}};
+/* seletor de obras */
+function abrirPicker(l){pkList=l;$(`#pkt`).textContent=`Adicionar a “`+l.titulo+`”`;$(`#pks`).value=``;pkDraw();$(`#pk`).showModal()}
+function pkDraw(){const q=$(`#pks`).value.toLowerCase().trim(),on=new Set(itens(pkList));
+  $(`#pkl`).innerHTML=B.filter(b=>(b.n+b.au).toLowerCase().includes(q)).map(b=>`<label class="lrow"><input type="checkbox" data-o="${esc(b.id)}"${on.has(b.id)?` checked`:``}>${esc(b.n)}<small>${esc(b.au)}</small></label>`).join(``)||`<p class="mute">Nenhuma obra encontrada.</p>`}
+$(`#pks`).oninput=pkDraw;
+$(`#pkl`).onchange=async e=>{const c=e.target,o=c.dataset.o;if(!o)return;c.disabled=true;
+  try{if(c.checked)await api(`/rest/v1/lista_itens`,{method:`POST`,prefer:`resolution=ignore-duplicates,return=minimal`,body:{lista_id:pkList.id,obra:o}});
+    else await api(`/rest/v1/lista_itens?lista_id=eq.`+encodeURIComponent(pkList.id)+`&obra=eq.`+encodeURIComponent(o),{method:`DELETE`,prefer:`return=minimal`})}
+  catch(x){c.checked=!c.checked;MV.toast(x.message)}c.disabled=false};
+$(`#pkx`).onclick=()=>$(`#pk`).close();$(`#pk`).onclick=e=>{if(e.target==$(`#pk`))$(`#pk`).close()};
+$(`#pk`).addEventListener(`close`,load);
+
+tok?verCompartilhada():load();
+}
+</script>
+</body>
+</html>

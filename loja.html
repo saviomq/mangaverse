@@ -21,6 +21,7 @@
 </div></div></section>
 <section class="blue"><div class="wrap">
 <div class="sh"><h2>Edições <span class="lab">disponíveis</span></h2><p class="mute">Valores de demonstração. Ao retirar um pedido você ganha 1 Manga Coin por real da compra.</p></div>
+<div class="qn" id="qn" hidden></div>
 <div class="shop" id="shop"><div class="empty mute">Carregando…</div></div>
 </div></section>
 <section><div class="wrap" style="max-width:860px">
@@ -42,8 +43,18 @@ async function load(){
   try{[PR,LJ]=await Promise.all([api(`/rest/v1/produtos?select=*&ativo=eq.true&order=titulo`),api(`/rest/v1/lojas?select=*&ativo=eq.true&order=nome`)])}
   catch(e){$(`#shop`).innerHTML=`<div class="empty mute">Não foi possível carregar a loja agora. Tente novamente em instantes.</div>`;return}
   drawP();orders()}
+/* vindo do leitor (?q=título): mostra primeiro a edição daquela obra, se existir */
+const Q=(new URLSearchParams(location.search).get(`q`)||``).trim();let todas=!Q;
+const nz=s=>String(s||``).normalize(`NFD`).replace(/[\u0300-\u036f]/g,``).toLowerCase();
+const GEN=new Set([`manga`,`mangas`,`volume`,`completa`,`colecao`,`selecao`]);
+function visiveis(){if(todas)return PR;const ts=nz(Q).split(/[^a-z0-9]+/).filter(t=>t.length>=4&&!GEN.has(t));
+  return PR.filter(p=>ts.some(t=>nz(p.titulo).includes(t)))}
 function drawP(){
-  $(`#shop`).innerHTML=PR.length?PR.map((p,i)=>`<div class="card"><div class="tile v${i%4+1}" aria-hidden="true">${esc(p.kanji)}</div><h3>${esc(p.titulo)}</h3><p class="by">${esc(p.autor)}</p><div class="pr">${brl(p.preco_centavos)}</div><p class="est">${p.estoque<=0?`Esgotado`:p.estoque<=5?`Últimas ${p.estoque} unidades`:`Disponível para retirada`}</p><button class="btn b" data-p="${esc(p.id)}"${p.estoque>0&&LJ.length?``:` disabled`}>${p.estoque>0?`Reservar`:`Esgotado`}</button></div>`).join(``):`<div class="empty mute">Nenhuma edição disponível no momento.</div>`}
+  let V=visiveis();const qn=$(`#qn`);
+  if(Q&&!todas&&!V.length){todas=true;V=PR;qn.hidden=false;qn.innerHTML=`<span>Ainda não há uma edição física de <b>${esc(Q)}</b> na Loja. Veja outras edições.</span>`}
+  else if(Q&&!todas){qn.hidden=false;qn.innerHTML=`<span>Edições de <b>${esc(Q)}</b>.</span><button class="btn w sm" id="vt">Ver todas</button>`;$(`#vt`).onclick=()=>{todas=true;drawP()}}
+  else if(Q&&todas&&qn.innerHTML.includes(`vt`)){qn.hidden=true}
+  $(`#shop`).innerHTML=V.length?V.map((p,i)=>`<div class="card"><div class="tile v${i%4+1}" aria-hidden="true">${esc(p.kanji)}</div><h3>${esc(p.titulo)}</h3><p class="by">${esc(p.autor)}</p><div class="pr">${brl(p.preco_centavos)}</div><p class="est">${p.estoque<=0?`Esgotado`:p.estoque<=5?`Últimas ${p.estoque} unidades`:`Disponível para retirada`}</p><button class="btn b" data-p="${esc(p.id)}"${p.estoque>0&&LJ.length?``:` disabled`}>${p.estoque>0?`Reservar`:`Esgotado`}</button></div>`).join(``):`<div class="empty mute">Nenhuma edição disponível no momento.</div>`}
 async function orders(){
   let o=[];try{o=await api(`/rest/v1/pedidos?select=id,codigo,qtd,total_centavos,status,criado_em,produtos(titulo),lojas(nome)&order=criado_em.desc`)}catch(e){}
   $(`#ord`).innerHTML=o.length?o.map(x=>`<li><b>${esc(x.produtos&&x.produtos.titulo)}${x.qtd>1?` ×`+x.qtd:``}</b><code>${esc(x.codigo)}</code><span class="status ${esc(x.status)}">${ST[x.status]||esc(x.status)}</span><small>${esc(x.lojas&&x.lojas.nome)} · ${brl(x.total_centavos)} · ${new Date(x.criado_em).toLocaleDateString(`pt-BR`)}</small>${x.status==`reservado`?`<button class="btn sm" data-c="${x.id}">Cancelar</button>`:``}</li>`).join(``):`<li style="background:transparent;border-style:dashed"><span class="mute">Você ainda não fez reservas.</span></li>`}

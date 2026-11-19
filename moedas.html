@@ -19,12 +19,19 @@
 <div class="goal" id="goal"></div></div>
 </div></div></section>
 
+<section><div class="wrap grid2" style="align-items:start">
+<div class="card streak" id="streak"><h3>Ofensiva diária</h3><p class="mute">Carregando…</p></div>
+<div class="card invite" id="invite"><h3>Convide amigos</h3><p class="mute">Carregando…</p></div>
+</div></section>
+
 <section class="blue"><div class="wrap">
 <div class="sh"><h2>Como <span class="lab">ganhar</span></h2><p class="mute">Quanto mais você lê, mais moedas acumula.</p></div>
 <div class="earn">
 <div class="card"><span class="tag">+10 por título</span><h3 style="margin-top:14px">Leia até o fim</h3><p>Veja as páginas de uma obra no leitor, sem pressa: cada página precisa ficar alguns segundos na tela. Cada título rende moedas uma única vez.</p></div>
 <div class="card"><span class="tag">+2 a cada 5 min</span><h3 style="margin-top:14px">Tempo de tela</h3><p>O relógio só corre enquanto você vira páginas. Leitor parado, aba em segundo plano ou 2 minutos sem ação pausam a contagem. Máximo de 20 moedas por dia.</p></div>
 <div class="card"><span class="tag">+1 por R$ 1</span><h3 style="margin-top:14px">Compras no site</h3><p>Retire um pedido da <a href="loja.html" style="text-decoration:underline">Loja</a> e ganhe moedas pelo valor da compra.</p></div>
+<div class="card"><span class="tag">Multiplicador</span><h3 style="margin-top:14px">Ofensiva diária</h3><p>Leia em dias seguidos e suas moedas de leitura rendem mais a cada nova faixa da ofensiva.</p></div>
+<div class="card"><span class="tag">Por amigo</span><h3 style="margin-top:14px">Convide amigos</h3><p>Compartilhe seu link. Quando o amigo cria a conta e escolhe um plano, você ganha moedas.</p></div>
 <div class="card"><span class="tag soon">Em breve</span><h3 style="margin-top:14px">Comprar moedas</h3><p>Complete o saldo com pacotes de moedas quando quiser um brinde mais cedo.</p></div>
 </div></div></section>
 
@@ -68,7 +75,30 @@ $(`#rwd`).onclick=async e=>{const id=e.target.dataset.r;if(!id)return;
   try{const d=await C.rpc(`moedas_resgatar`,{p_brinde:id});C.show(d.saldo);MV.toast(`Troca feita! Código `+d.codigo)}
   catch(x){MV.toast(x.message)}
   load()};
-load();
+/* ofensiva diária: o servidor calcula; aqui só exibimos */
+async function loadStreak(){
+  let s;try{s=await MV.rpc(`ofensiva_estado`)}catch(e){$(`#streak`).innerHTML=`<h3>Ofensiva diária</h3><p class="mute">Não foi possível carregar agora.</p>`;return}
+  const L=[`D`,`S`,`T`,`Q`,`Q`,`S`,`S`],fm=n=>(+n).toLocaleString(`pt-BR`);
+  const sem=(s.semana||[]).map((d,i,a)=>`<span class="${d.leu?`on`:``}${i==a.length-1?` hoje`:``}" title="${esc(d.dia)}">${L[new Date(d.dia+`T12:00:00`).getDay()]}</span>`).join(``);
+  const msg=s.leu_hoje?`Você já leu hoje. Volte amanhã para manter a ofensiva.`:s.atual>0?`Leia hoje para não perder sua ofensiva.`:`Leia hoje para começar sua ofensiva.`;
+  const px=s.proximo?`Faltam ${s.proximo.faltam} ${s.proximo.faltam==1?`dia`:`dias`} para ×${fm(s.proximo.mult)}.`:`Você está na faixa máxima.`;
+  $(`#streak`).innerHTML=`<h3>Ofensiva diária</h3><div class="sdays" style="margin-top:14px">${s.atual}<small>${s.atual==1?`dia seguido`:`dias seguidos`}</small></div>
+<p style="margin:8px 0 0;font-weight:800">Multiplicador de hoje<span class="mult">×${fm(s.mult)}</span></p>
+<div class="sweek" aria-label="Últimos 7 dias">${sem}</div><p style="margin:0;font-weight:700">${msg} ${px}</p>
+<div class="tiers">${(s.faixas||[]).map(f=>`<span class="${s.atual>=f.dias?`on`:``}">${f.dias}+ dias · ×${fm(f.mult)}</span>`).join(``)}</div>
+<p class="mute" style="margin:14px 0 0;font-size:13px">O multiplicador vale para as moedas de leitura. Um dia conta quando você lê no leitor. O dia vira à meia-noite, no horário de Brasília.</p>`}
+/* convite de amigos */
+async function loadInvite(){
+  let c;try{c=await MV.rpc(`convite_estado`)}catch(e){$(`#invite`).innerHTML=`<h3>Convide amigos</h3><p class="mute">Não foi possível carregar agora.</p>`;return}
+  const u=new URL(`cadastro.html`,location.href);u.search=`?ref=`+c.codigo;const link=u.href;
+  $(`#invite`).innerHTML=`<h3>Convide amigos</h3><p style="margin:10px 0 0">Você ganha <b>${c.recompensa} moedas</b> por amigo que criar a conta pelo seu link e escolher um plano (até ${c.limite} amigos).</p>
+<div class="ilink"><input id="il" readonly value="${esc(link)}" aria-label="Seu link de convite"><button class="btn b sm" id="ic">Copiar link</button>${navigator.share?`<button class="btn w sm" id="is">Compartilhar</button>`:``}</div>
+<div class="istats"><div><b>${c.total}</b>convidados</div><div><b>${c.pagos}</b>com plano</div><div><b>${c.pagos*c.recompensa}</b>moedas ganhas</div></div>
+${c.convidados.length?`<ul class="ifr">${c.convidados.map(x=>`<li><i>${esc(x.inicial)}</i>${x.pago?`Recompensa recebida`:`Aguardando a escolha de um plano`}<small>${new Date(x.em).toLocaleDateString(`pt-BR`)}</small></li>`).join(``)}</ul>`:`<p class="mute" style="margin:0">Ninguém usou seu link ainda.</p>`}`;
+  $(`#ic`).onclick=async()=>{try{await navigator.clipboard.writeText(link)}catch(e){$(`#il`).select();document.execCommand(`copy`)}MV.toast(`Link copiado`)};
+  const sh=$(`#is`);if(sh)sh.onclick=()=>navigator.share({title:`Mangáverso`,text:`Leia mangá sem limites no Mangáverso:`,url:link}).catch(()=>{});
+  if(c.pagos_agora>0){ST=await C.refresh();draw()}}
+load();loadStreak();loadInvite();
 }
 </script>
 </body>
